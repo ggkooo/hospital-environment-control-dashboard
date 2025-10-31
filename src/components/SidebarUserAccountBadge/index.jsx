@@ -10,7 +10,7 @@ export function SidebarUserAccountBadge() {
                         <p className='text-sm font-medium truncate' title={'Nome da Conta do Usuário Muito Longo Exemplo'}>Nome da Conta do Usuário Muito Longo Exemplo</p>
                     </div>
                 </div>
-                <button className='p-2 rounded-md hover:bg-hover-primary'>
+                <button className='p-2 rounded-md hover:bg-hover-primary cursor-pointer'>
                     <IoSettingsOutline size={20} />
                 </button>
             </div>
