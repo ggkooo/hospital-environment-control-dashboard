@@ -1,7 +1,9 @@
+import {Sidebar} from "./components/Sidebar/index.jsx";
+
 function App() {
   return (
     <>
-      <p className='text-amber-300'>Test</p>
+      <Sidebar/>
     </>
   )
 }
