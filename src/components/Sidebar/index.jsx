@@ -1,7 +1,7 @@
 import logo from '../../assets/logo.png'
-import {SidebarAdministrationMenu} from "../SidebarAdministrationMenu/index.jsx";
-import {SidebarUserAccountBadge} from "../SidebarUserAccountBadge/index.jsx";
-import {SidebarLinks} from "../SidebarLinks/index.jsx";
+import {SidebarAdministrationMenu} from "./AdministrationDropdown.jsx";
+import {SidebarUserAccountBadge} from "./UserAccountBadge.jsx";
+import {SidebarLinks} from "./VariablesLinks.jsx";
 import {useState} from "react";
 
 export function Sidebar() {
