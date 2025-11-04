@@ -139,15 +139,13 @@ export function TemperatureChart({ data }) {
             .attr('gradientUnits', 'userSpaceOnUse')
             .attr('x1', 0).attr('y1', innerHeight)
             .attr('x2', 0).attr('y2', 0)
-
         gradient.append('stop')
             .attr('offset', '0%')
-            .attr('stop-color', '#99c6ff')
+            .attr('stop-color', '#2563eb') // azul padronizado
             .attr('stop-opacity', 0.08)
-
         gradient.append('stop')
             .attr('offset', '100%')
-            .attr('stop-color', '#99c6ff')
+            .attr('stop-color', '#2563eb') // azul padronizado
             .attr('stop-opacity', 0.18)
 
         const line = d3.line()
@@ -192,10 +190,9 @@ export function TemperatureChart({ data }) {
         g.append('path')
             .datum(paddedData)
             .attr('fill', 'none')
-            .attr('stroke', '#589dff')
+            .attr('stroke', '#2563eb') // linha azul padronizada
             .attr('stroke-width', 1.25)
             .attr('d', line)
-
         g.selectAll('.dot')
             .data(paddedData)
             .enter().append('circle')
@@ -203,21 +200,19 @@ export function TemperatureChart({ data }) {
             .attr('cx', d => xScale(d.timestamp))
             .attr('cy', d => d.isZero ? innerHeight : yScale(d.value))
             .attr('r', d => d.isZero ? 0.5 : 2)
-            .attr('fill', d => d.isZero ? '#e2e8f0' : '#60a5fa')
+            .attr('fill', d => d.isZero ? '#e2e8f0' : '#2563eb') // ponto azul padronizado
             .attr('stroke', 'none')
             .style('opacity', d => d.isZero ? 0.2 : 0.7)
             .on('mouseover', function(event, d) {
                 if (d.isZero) return
-
                 d3.select(this)
                     .style('opacity', 0.9)
                     .attr('r', 3.5)
-                    .attr('fill', '#3b82f6')
-
+                    .attr('fill', '#2563eb') // ponto azul padronizado
                 const tooltip = d3.select('body').append('div')
                     .attr('class', 'temperature-tooltip')
                     .style('position', 'absolute')
-                    .style('background', 'rgba(59, 130, 246, 0.95)')
+                    .style('background', 'rgba(37, 99, 235, 0.95)') // tooltip azul padronizado
                     .style('color', 'white')
                     .style('padding', '6px 10px')
                     .style('border-radius', '6px')
@@ -225,7 +220,7 @@ export function TemperatureChart({ data }) {
                     .style('pointer-events', 'none')
                     .style('z-index', '1000')
                     .style('border', 'none')
-                    .style('box-shadow', '0 4px 6px -1px rgba(59, 130, 246, 0.25)')
+                    .style('box-shadow', '0 4px 6px -1px rgba(16, 185, 129, 0.25)')
 
                 tooltip.html(`
                     <div style="font-weight: 500;">${d.value.toFixed(2)}°C</div>
@@ -240,7 +235,7 @@ export function TemperatureChart({ data }) {
                 d3.select(this)
                     .style('opacity', 0.7)
                     .attr('r', 2)
-                    .attr('fill', '#60a5fa')
+                    .attr('fill', '#2563eb') // volta para azul padronizado
                 d3.selectAll('.temperature-tooltip').remove()
             })
 
