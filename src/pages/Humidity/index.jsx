@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Sidebar } from "../../components/Sidebar/index.jsx";
 import { Header } from "../../components/Header/index.jsx";
 import { Loading } from "../../components/Loading/index.jsx";
@@ -7,6 +8,24 @@ import { useHumidityData } from "../../hooks/useHumidityData.jsx";
 
 export function Humidity() {
     const { humidityData, loading, error, refetch } = useHumidityData();
+    const [showLoading, setShowLoading] = useState(true);
+    const loadingStart = useRef(null);
+
+    useEffect(() => {
+        if (loading) {
+            loadingStart.current = Date.now();
+            setShowLoading(true);
+        } else {
+            const elapsed = Date.now() - (loadingStart.current || Date.now());
+            const minTime = 730;
+            if (elapsed < minTime) {
+                const timeout = setTimeout(() => setShowLoading(false), minTime - elapsed);
+                return () => clearTimeout(timeout);
+            } else {
+                setShowLoading(false);
+            }
+        }
+    }, [loading]);
 
     return (
         <div className='flex flex-row h-screen'>
@@ -18,7 +37,7 @@ export function Humidity() {
                 />
 
                 <div className="mt-4 md:mt-6">
-                    {loading ? (
+                    {showLoading ? (
                         <div className="flex items-center justify-center py-12">
                             <Loading />
                         </div>
@@ -65,7 +84,7 @@ export function Humidity() {
                                     </h3>
                                     <button
                                         onClick={refetch}
-                                        className="px-3 py-1 text-sm bg-emerald-400 text-white rounded-md hover:bg-emerald-500 transition-colors"
+                                        className="px-3 py-1 text-sm bg-blue-400 text-white rounded-md hover:bg-blue-500 transition-colors"
                                         style={{ border: 'none' }}
                                     >
                                         Refresh
