@@ -116,11 +116,11 @@ export function HumidityChart({ data }) {
             .attr('x2', 0).attr('y2', 0)
         gradient.append('stop')
             .attr('offset', '0%')
-            .attr('stop-color', '#a7f3d0')
+            .attr('stop-color', '#2563eb') // azul padronizado
             .attr('stop-opacity', 0.08)
         gradient.append('stop')
             .attr('offset', '100%')
-            .attr('stop-color', '#a7f3d0')
+            .attr('stop-color', '#2563eb') // azul padronizado
             .attr('stop-opacity', 0.18)
         const line = d3.line()
             .x(d => xScale(d.timestamp))
@@ -157,7 +157,7 @@ export function HumidityChart({ data }) {
         g.append('path')
             .datum(paddedData)
             .attr('fill', 'none')
-            .attr('stroke', '#34d399')
+            .attr('stroke', '#2563eb') // linha azul padronizada
             .attr('stroke-width', 1.25)
             .attr('d', line)
         g.selectAll('.dot')
@@ -167,7 +167,7 @@ export function HumidityChart({ data }) {
             .attr('cx', d => xScale(d.timestamp))
             .attr('cy', d => d.isZero ? innerHeight : yScale(d.value))
             .attr('r', d => d.isZero ? 0.5 : 2)
-            .attr('fill', d => d.isZero ? '#e2e8f0' : '#34d399')
+            .attr('fill', d => d.isZero ? '#e2e8f0' : '#2563eb') // ponto azul padronizado
             .attr('stroke', 'none')
             .style('opacity', d => d.isZero ? 0.2 : 0.7)
             .on('mouseover', function(event, d) {
@@ -175,11 +175,11 @@ export function HumidityChart({ data }) {
                 d3.select(this)
                     .style('opacity', 0.9)
                     .attr('r', 3.5)
-                    .attr('fill', '#059669')
+                    .attr('fill', '#2563eb') // ponto azul padronizado
                 const tooltip = d3.select('body').append('div')
                     .attr('class', 'humidity-tooltip')
                     .style('position', 'absolute')
-                    .style('background', 'rgba(16, 185, 129, 0.95)')
+                    .style('background', 'rgba(37, 99, 235, 0.95)') // tooltip azul padronizado
                     .style('color', 'white')
                     .style('padding', '6px 10px')
                     .style('border-radius', '6px')
