@@ -4,9 +4,28 @@ import { Loading } from "../../components/Loading/index.jsx";
 import { TemperatureChart } from "./Chart.jsx";
 import { TemperatureStats } from "./TemperatureStats.jsx";
 import { useTemperatureData } from "../../hooks/useTemperatureData.jsx";
+import { useEffect, useRef, useState } from "react";
 
 export function Temperature() {
-    const { temperatureData, loading, error, refetch } = useTemperatureData()
+    const { temperatureData, loading, error, refetch } = useTemperatureData();
+    const [showLoading, setShowLoading] = useState(true);
+    const loadingStart = useRef(null);
+
+    useEffect(() => {
+        if (loading) {
+            loadingStart.current = Date.now();
+            setShowLoading(true);
+        } else {
+            const elapsed = Date.now() - (loadingStart.current || Date.now());
+            const minTime = 730;
+            if (elapsed < minTime) {
+                const timeout = setTimeout(() => setShowLoading(false), minTime - elapsed);
+                return () => clearTimeout(timeout);
+            } else {
+                setShowLoading(false);
+            }
+        }
+    }, [loading]);
 
     return (
         <div className='flex flex-row h-screen'>
@@ -18,7 +37,7 @@ export function Temperature() {
                 />
 
                 <div className="mt-4 md:mt-6">
-                    {loading ? (
+                    {showLoading ? (
                         <div className="flex items-center justify-center py-12">
                             <Loading />
                         </div>
