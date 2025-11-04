@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import {Home} from "./pages/Home/index.jsx";
 import {Temperature} from "./pages/Temperature/index.jsx";
+import {Humidity} from "./pages/Humidity/index.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -12,6 +13,7 @@ createRoot(document.getElementById('root')).render(
           <Routes>
               <Route path='/' element={<Home/>}/>
               <Route path='/temperature' element={<Temperature/>}/>
+              <Route path='/humidity' element={<Humidity/>}/>
 
               <Route path='/administration'>
                   <Route path='users' element={<App/>}/>
