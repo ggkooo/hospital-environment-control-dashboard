@@ -6,6 +6,7 @@ import App from './App.jsx'
 import {Home} from "./pages/Home/index.jsx";
 import {Temperature} from "./pages/Temperature/index.jsx";
 import {Humidity} from "./pages/Humidity/index.jsx";
+import { Pressure } from "./pages/Pressure/index.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -14,6 +15,7 @@ createRoot(document.getElementById('root')).render(
               <Route path='/' element={<Home/>}/>
               <Route path='/temperature' element={<Temperature/>}/>
               <Route path='/humidity' element={<Humidity/>}/>
+              <Route path='/pressure' element={<Pressure/>}/>
 
               <Route path='/administration'>
                   <Route path='users' element={<App/>}/>
