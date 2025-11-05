@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { IoLocationOutline } from "react-icons/io5";
 
@@ -12,8 +12,25 @@ import { getInitialData } from '../../utils/sensorConstants'
 
 export function Home() {
     const { liveData, loading, lastUpdated } = useLiveSensorData()
-
     const initialData = getInitialData()
+    const [showLoading, setShowLoading] = useState(true);
+    const loadingStart = useRef(null);
+
+    useEffect(() => {
+        if (loading) {
+            loadingStart.current = Date.now();
+            setShowLoading(true);
+        } else {
+            const elapsed = Date.now() - (loadingStart.current || Date.now());
+            const minTime = 730;
+            if (elapsed < minTime) {
+                const timeout = setTimeout(() => setShowLoading(false), minTime - elapsed);
+                return () => clearTimeout(timeout);
+            } else {
+                setShowLoading(false);
+            }
+        }
+    }, [loading]);
 
     return (
         <div className='flex flex-row h-screen'>
@@ -26,7 +43,7 @@ export function Home() {
                 <LocationSection title={(<><IoLocationOutline /> ICU</>)} />
                 <LocationSection title={(<><IoLocationOutline /> Reception</>)} />
 
-                {loading && (
+                {showLoading && (
                     <Loading text='Fetching data...' />
                 )}
             </div>

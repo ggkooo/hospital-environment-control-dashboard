@@ -8,48 +8,20 @@ export function TemperatureChart({ data }) {
 
     const padDataTo60Points = (originalData) => {
         const TARGET_POINTS = 60
-        const now = new Date()
-
         if (!originalData || originalData.length === 0) {
+            const now = new Date();
             return Array.from({ length: TARGET_POINTS }, (_, i) => ({
                 timestamp: new Date(now.getTime() - ((TARGET_POINTS - 1 - i) * 60 * 1000)),
-                value: 0,
-                min: 0,
-                max: 0,
+                value: null,
+                min: null,
+                max: null,
                 isZero: true
             }))
         }
-
-        if (originalData.length >= TARGET_POINTS) {
-            return originalData.slice(-TARGET_POINTS).map(point => ({
-                ...point,
-                isZero: false
-            }))
-        }
-
-        const missingPoints = TARGET_POINTS - originalData.length
-        const oldestTimestamp = originalData[0].timestamp
-
-        const paddedData = []
-
-        for (let i = missingPoints - 1; i >= 0; i--) {
-            paddedData.push({
-                timestamp: new Date(oldestTimestamp.getTime() - ((i + 1) * 60 * 1000)),
-                value: 0,
-                min: 0,
-                max: 0,
-                isZero: true
-            })
-        }
-
-        originalData.forEach(point => {
-            paddedData.push({
-                ...point,
-                isZero: false
-            })
-        })
-
-        return paddedData
+        return originalData.map(point => ({
+            ...point,
+            isZero: point.value === null || point.value === undefined || point.isZero === true
+        }))
     }
 
     useEffect(() => {
@@ -139,15 +111,13 @@ export function TemperatureChart({ data }) {
             .attr('gradientUnits', 'userSpaceOnUse')
             .attr('x1', 0).attr('y1', innerHeight)
             .attr('x2', 0).attr('y2', 0)
-
         gradient.append('stop')
             .attr('offset', '0%')
-            .attr('stop-color', '#99c6ff')
+            .attr('stop-color', '#2563eb')
             .attr('stop-opacity', 0.08)
-
         gradient.append('stop')
             .attr('offset', '100%')
-            .attr('stop-color', '#99c6ff')
+            .attr('stop-color', '#2563eb')
             .attr('stop-opacity', 0.18)
 
         const line = d3.line()
@@ -192,55 +162,69 @@ export function TemperatureChart({ data }) {
         g.append('path')
             .datum(paddedData)
             .attr('fill', 'none')
-            .attr('stroke', '#589dff')
+            .attr('stroke', '#2563eb')
             .attr('stroke-width', 1.25)
             .attr('d', line)
-
         g.selectAll('.dot')
             .data(paddedData)
             .enter().append('circle')
             .attr('class', 'dot')
             .attr('cx', d => xScale(d.timestamp))
             .attr('cy', d => d.isZero ? innerHeight : yScale(d.value))
-            .attr('r', d => d.isZero ? 0.5 : 2)
-            .attr('fill', d => d.isZero ? '#e2e8f0' : '#60a5fa')
-            .attr('stroke', 'none')
-            .style('opacity', d => d.isZero ? 0.2 : 0.7)
+            .attr('r', 3)
+            .attr('fill', d => d.isZero ? '#cbd5e1' : '#2563eb')
+            .attr('stroke', d => d.isZero ? '#cbd5e1' : '#2563eb')
+            .style('opacity', d => d.isZero ? 0.18 : 0.85)
             .on('mouseover', function(event, d) {
-                if (d.isZero) return
-
                 d3.select(this)
-                    .style('opacity', 0.9)
-                    .attr('r', 3.5)
-                    .attr('fill', '#3b82f6')
-
+                    .style('opacity', 1)
+                    .attr('r', 5)
+                    .attr('stroke', d.isZero ? '#64748b' : '#2563eb')
+                    .attr('stroke-width', 2)
                 const tooltip = d3.select('body').append('div')
                     .attr('class', 'temperature-tooltip')
                     .style('position', 'absolute')
-                    .style('background', 'rgba(59, 130, 246, 0.95)')
+                    .style('background', d.isZero ? 'rgba(71,85,105,0.95)' : 'rgba(37,99,235,0.95)')
                     .style('color', 'white')
-                    .style('padding', '6px 10px')
-                    .style('border-radius', '6px')
-                    .style('font-size', '11px')
+                    .style('padding', '8px 14px')
+                    .style('border-radius', '8px')
+                    .style('font-size', '13px')
                     .style('pointer-events', 'none')
                     .style('z-index', '1000')
                     .style('border', 'none')
-                    .style('box-shadow', '0 4px 6px -1px rgba(59, 130, 246, 0.25)')
-
-                tooltip.html(`
-                    <div style="font-weight: 500;">${d.value.toFixed(2)}°C</div>
-                    <div style="opacity: 0.8; font-size: 10px;">${d.timestamp.toLocaleTimeString()}</div>
-                `)
-                    .style('left', (event.pageX + 10) + 'px')
-                    .style('top', (event.pageY - 10) + 'px')
+                    .style('box-shadow', '0 4px 12px -1px rgba(16, 185, 129, 0.25)')
+                    .style('opacity', 0)
+                    .style('transition', 'opacity 0.25s ease')
+                if (d.isZero) {
+                    tooltip.html(`
+                        <div style=\"font-weight: 500;\">Não existe dado para esta hora do sensor</div>
+                        <div style=\"opacity: 0.8; font-size: 12px;\">${d.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    `)
+                } else {
+                    tooltip.html(`
+                        <div style=\"font-weight: 600; font-size: 15px;\">${d.value != null ? d.value.toFixed(2) : '--'}°C</div>
+                        <div style=\"opacity: 0.8; font-size: 12px;\">${d.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div style=\"margin-top: 4px; font-size: 11px; opacity: 0.7;\">Min: ${d.min != null ? d.min.toFixed(2) : '--'}°C • Max: ${d.max != null ? d.max.toFixed(2) : '--'}°C</div>
+                    `)
+                }
+                setTimeout(() => {
+                    const tooltipNode = tooltip.node();
+                    const tooltipWidth = tooltipNode ? tooltipNode.offsetWidth : 120;
+                    const padding = 12;
+                    let left = event.pageX + padding;
+                    if (left + tooltipWidth > window.innerWidth - 10) {
+                        left = event.pageX - tooltipWidth - padding;
+                    }
+                    tooltip.style('left', left + 'px')
+                        .style('top', (event.pageY - 18) + 'px')
+                        .style('opacity', 1);
+                }, 0);
             })
             .on('mouseout', function(event, d) {
-                if (d.isZero) return
-
                 d3.select(this)
-                    .style('opacity', 0.7)
-                    .attr('r', 2)
-                    .attr('fill', '#60a5fa')
+                    .style('opacity', d.isZero ? 0.18 : 0.85)
+                    .attr('r', 3)
+                    .attr('stroke-width', 0)
                 d3.selectAll('.temperature-tooltip').remove()
             })
 

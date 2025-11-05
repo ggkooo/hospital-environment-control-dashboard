@@ -15,10 +15,10 @@ export function SidebarLinks() {
             <Link className='p-2 hover:bg-hover-primary rounded-md flex flex-row gap-3 items-center' to="/"><IoHomeOutline /> Home</Link>
             <Link className='p-2 hover:bg-hover-primary rounded-md flex flex-row gap-3 items-center' to="/temperature"><IoThermometerOutline /> Temperature</Link>
             <Link className='p-2 hover:bg-hover-primary rounded-md flex flex-row gap-3 items-center' to="/humidity"><IoWaterOutline /> Humidity</Link>
-            <Link className='p-2 hover:bg-hover-primary rounded-md flex flex-row gap-3 items-center' to="pressure"><IoSpeedometerOutline /> Pressure</Link>
-            <Link className='p-2 hover:bg-hover-primary rounded-md flex flex-row gap-3 items-center' to="noise"><IoVolumeHighOutline /> Noise</Link>
-            <Link className='p-2 hover:bg-hover-primary rounded-md flex flex-row gap-3 items-center' to="eco2"><IoLeafOutline /> eCO2</Link>
-            <Link className='p-2 hover:bg-hover-primary rounded-md flex flex-row gap-3 items-center' to="tvoc"><IoFlaskOutline /> TVOC</Link>
+            <Link className='p-2 hover:bg-hover-primary rounded-md flex flex-row gap-3 items-center' to="/pressure"><IoSpeedometerOutline /> Pressure</Link>
+            <Link className='p-2 hover:bg-hover-primary rounded-md flex flex-row gap-3 items-center' to="/noise"><IoVolumeHighOutline /> Noise</Link>
+            <Link className='p-2 hover:bg-hover-primary rounded-md flex flex-row gap-3 items-center' to="/eco2"><IoLeafOutline /> eCO2</Link>
+            <Link className='p-2 hover:bg-hover-primary rounded-md flex flex-row gap-3 items-center' to="/tvoc"><IoFlaskOutline /> TVOC</Link>
         </div>
     )
 }

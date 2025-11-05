@@ -14,36 +14,38 @@ export function HumidityStats({ data }) {
         )
     }
 
-    const currentHumidity = data[data.length - 1]?.value || 0
-    const minHumidity = Math.min(...data.map(d => d.value))
-    const maxHumidity = Math.max(...data.map(d => d.value))
-    const avgHumidity = data.reduce((sum, d) => sum + d.value, 0) / data.length
+    const validData = data.filter(d => d.value !== null && d.value !== undefined);
+    const sortedValidData = validData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const currentHumidity = sortedValidData.length > 0 ? sortedValidData[sortedValidData.length - 1].value : null;
+    const minHumidity = sortedValidData.length > 0 ? Math.min(...sortedValidData.map(d => d.value)) : null;
+    const maxHumidity = sortedValidData.length > 0 ? Math.max(...sortedValidData.map(d => d.value)) : null;
+    const avgHumidity = sortedValidData.length > 0 ? (sortedValidData.reduce((sum, d) => sum + d.value, 0) / sortedValidData.length) : null;
 
     const stats = [
         {
             label: 'Current',
-            value: currentHumidity.toFixed(2),
+            value: currentHumidity !== null ? currentHumidity.toFixed(2) : '--',
             unit: '%',
             color: 'text-blue-600',
             bgColor: 'bg-blue-50'
         },
         {
-            label: 'Average (60min)',
-            value: avgHumidity.toFixed(2),
+            label: `Average (${validData.length} min)`,
+            value: avgHumidity !== null ? avgHumidity.toFixed(2) : '--',
             unit: '%',
             color: 'text-green-600',
             bgColor: 'bg-green-50'
         },
         {
             label: 'Minimum',
-            value: minHumidity.toFixed(2),
+            value: minHumidity !== null ? minHumidity.toFixed(2) : '--',
             unit: '%',
             color: 'text-cyan-600',
             bgColor: 'bg-cyan-50'
         },
         {
             label: 'Maximum',
-            value: maxHumidity.toFixed(2),
+            value: maxHumidity !== null ? maxHumidity.toFixed(2) : '--',
             unit: '%',
             color: 'text-red-600',
             bgColor: 'bg-red-50'
@@ -61,4 +63,3 @@ export function HumidityStats({ data }) {
         </div>
     )
 }
-
