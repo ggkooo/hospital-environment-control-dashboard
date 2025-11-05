@@ -7,6 +7,7 @@ import {Home} from "./pages/Home/index.jsx";
 import {Temperature} from "./pages/Temperature/index.jsx";
 import {Humidity} from "./pages/Humidity/index.jsx";
 import { Pressure } from "./pages/Pressure/index.jsx";
+import {Noise} from "./pages/Noise/index.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -16,6 +17,7 @@ createRoot(document.getElementById('root')).render(
               <Route path='/temperature' element={<Temperature/>}/>
               <Route path='/humidity' element={<Humidity/>}/>
               <Route path='/pressure' element={<Pressure/>}/>
+              <Route path='/noise' element={<Noise/>}/>
 
               <Route path='/administration'>
                   <Route path='users' element={<App/>}/>
