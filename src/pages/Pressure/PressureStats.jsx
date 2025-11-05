@@ -14,38 +14,38 @@ export function PressureStats({ data }) {
         )
     }
 
-    // Filtra apenas valores numéricos válidos
-    const validValues = data.map(d => Number(d.value)).filter(v => !isNaN(v))
-    const currentPressure = validValues.length > 0 ? validValues[validValues.length - 1] : 0
-    const minPressure = validValues.length > 0 ? Math.min(...validValues) : 0
-    const maxPressure = validValues.length > 0 ? Math.max(...validValues) : 0
-    const avgPressure = validValues.length > 0 ? validValues.reduce((sum, v) => sum + v, 0) / validValues.length : 0
+    const validData = data.filter(d => d.value !== null && d.value !== undefined);
+    const sortedValidData = validData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const currentPressure = sortedValidData.length > 0 ? sortedValidData[sortedValidData.length - 1].value : null;
+    const minPressure = sortedValidData.length > 0 ? Math.min(...sortedValidData.map(d => d.value)) : null;
+    const maxPressure = sortedValidData.length > 0 ? Math.max(...sortedValidData.map(d => d.value)) : null;
+    const avgPressure = sortedValidData.length > 0 ? (sortedValidData.reduce((sum, d) => sum + d.value, 0) / sortedValidData.length) : null;
 
     const stats = [
         {
             label: 'Current',
-            value: currentPressure.toFixed(2),
+            value: currentPressure !== null ? currentPressure.toFixed(2) : '--',
             unit: 'hPa',
             color: 'text-blue-600',
             bgColor: 'bg-blue-50'
         },
         {
-            label: 'Average (60min)',
-            value: avgPressure.toFixed(2),
+            label: `Average (${validData.length} min)`,
+            value: avgPressure !== null ? avgPressure.toFixed(2) : '--',
             unit: 'hPa',
             color: 'text-green-600',
             bgColor: 'bg-green-50'
         },
         {
             label: 'Minimum',
-            value: minPressure.toFixed(2),
+            value: minPressure !== null ? minPressure.toFixed(2) : '--',
             unit: 'hPa',
             color: 'text-cyan-600',
             bgColor: 'bg-cyan-50'
         },
         {
             label: 'Maximum',
-            value: maxPressure.toFixed(2),
+            value: maxPressure !== null ? maxPressure.toFixed(2) : '--',
             unit: 'hPa',
             color: 'text-red-600',
             bgColor: 'bg-red-50'
