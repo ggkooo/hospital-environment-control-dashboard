@@ -14,36 +14,38 @@ export function TemperatureStats({ data }) {
         )
     }
 
-    const currentTemp = data[data.length - 1]?.value || 0
-    const minTemp = Math.min(...data.map(d => d.value))
-    const maxTemp = Math.max(...data.map(d => d.value))
-    const avgTemp = data.reduce((sum, d) => sum + d.value, 0) / data.length
+    const validData = data.filter(d => d.value !== null && d.value !== undefined);
+    const sortedValidData = validData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const currentTemp = sortedValidData.length > 0 ? sortedValidData[sortedValidData.length - 1].value : null;
+    const minTemp = sortedValidData.length > 0 ? Math.min(...sortedValidData.map(d => d.value)) : null;
+    const maxTemp = sortedValidData.length > 0 ? Math.max(...sortedValidData.map(d => d.value)) : null;
+    const avgTemp = sortedValidData.length > 0 ? (sortedValidData.reduce((sum, d) => sum + d.value, 0) / sortedValidData.length) : null;
 
     const stats = [
         {
             label: 'Current',
-            value: currentTemp.toFixed(2),
+            value: currentTemp !== null ? currentTemp.toFixed(2) : '--',
             unit: '°C',
             color: 'text-blue-600',
             bgColor: 'bg-blue-50'
         },
         {
-            label: 'Average (60min)',
-            value: avgTemp.toFixed(2),
+            label: `Average (${validData.length} min)`,
+            value: avgTemp !== null ? avgTemp.toFixed(2) : '--',
             unit: '°C',
             color: 'text-green-600',
             bgColor: 'bg-green-50'
         },
         {
             label: 'Minimum',
-            value: minTemp.toFixed(2),
+            value: minTemp !== null ? minTemp.toFixed(2) : '--',
             unit: '°C',
             color: 'text-cyan-600',
             bgColor: 'bg-cyan-50'
         },
         {
             label: 'Maximum',
-            value: maxTemp.toFixed(2),
+            value: maxTemp !== null ? maxTemp.toFixed(2) : '--',
             unit: '°C',
             color: 'text-red-600',
             bgColor: 'bg-red-50'
