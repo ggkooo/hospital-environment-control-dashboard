@@ -9,26 +9,30 @@ export function useHumidityData() {
     const intervalRef = useRef(null)
     const lastDataRef = useRef([])
 
-    const createSlidingWindow = (newData, previousData = []) => {
-        const TARGET_POINTS = 60
-        if (!newData || newData.length === 0) {
-            return previousData
-        }
-        if (previousData.length === 0) {
-            return newData.slice(-TARGET_POINTS)
-        }
-        const lastTimestamp = previousData.length > 0
-            ? Math.max(...previousData.map(d => d.timestamp.getTime()))
-            : 0
-        const reallyNewData = newData.filter(point =>
-            point.timestamp.getTime() > lastTimestamp
-        )
-        if (reallyNewData.length === 0) {
-            return previousData
-        }
-        const combinedData = [...previousData, ...reallyNewData]
-        const slidingData = combinedData.slice(-TARGET_POINTS)
-        return slidingData
+    function validateConsecutiveHumidityData(data) {
+        if (!Array.isArray(data) || data.length === 0) return [];
+        const sorted = [...data].sort((a, b) => b.timestamp - a.timestamp);
+        const latest = sorted[0].timestamp;
+        const expectedTimestamps = Array.from({ length: 60 }, (_, i) => {
+            const d = new Date(latest);
+            d.setMinutes(d.getMinutes() - i);
+            d.setSeconds(0, 0);
+            return d.getTime();
+        });
+        const dataMap = new Map(sorted.map(d => [
+            new Date(d.timestamp).setSeconds(0, 0),
+            d
+        ]));
+        return expectedTimestamps.map(ts => {
+            const found = dataMap.get(ts);
+            if (found) return found;
+            return {
+                timestamp: new Date(ts),
+                value: null,
+                min: null,
+                max: null
+            };
+        });
     }
 
     async function fetchHumidityData() {
@@ -60,9 +64,9 @@ export function useHumidityData() {
             if (sortedData.length === 0) {
                 return
             }
-            const slidingData = createSlidingWindow(sortedData, lastDataRef.current)
-            setHumidityData(slidingData)
-            lastDataRef.current = slidingData
+            const validatedData = validateConsecutiveHumidityData(sortedData);
+            setHumidityData(validatedData)
+            lastDataRef.current = validatedData
             setIsUsingMockData(false)
         } catch (err) {
             setError(`API Error: ${err.message}`)

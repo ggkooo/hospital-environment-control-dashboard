@@ -7,40 +7,32 @@ export function useTemperatureData() {
     const [isUsingMockData, setIsUsingMockData] = useState(true)
 
     const intervalRef = useRef(null)
-    const lastDataRef = useRef([]) // Keep track of previous data for sliding window
+    const lastDataRef = useRef([])
 
-    const createSlidingWindow = (newData, previousData = []) => {
-        const TARGET_POINTS = 60
-
-        if (!newData || newData.length === 0) {
-            return previousData
-        }
-
-        if (previousData.length === 0) {
-            console.log('First load - using all new data')
-            return newData.slice(-TARGET_POINTS) // Take last 60 points if more than 60
-        }
-
-        const lastTimestamp = previousData.length > 0
-            ? Math.max(...previousData.map(d => d.timestamp.getTime()))
-            : 0
-
-        const reallyNewData = newData.filter(point =>
-            point.timestamp.getTime() > lastTimestamp
-        )
-
-        console.log(`Sliding window: ${reallyNewData.length} new points, ${previousData.length} existing points`)
-
-        if (reallyNewData.length === 0) {
-            return previousData
-        }
-
-        const combinedData = [...previousData, ...reallyNewData]
-
-        const slidingData = combinedData.slice(-TARGET_POINTS)
-
-        console.log(`Final sliding window: ${slidingData.length} points`)
-        return slidingData
+    function validateConsecutiveTemperatureData(data) {
+        if (!Array.isArray(data) || data.length === 0) return [];
+        const sorted = [...data].sort((a, b) => b.timestamp - a.timestamp);
+        const latest = sorted[0].timestamp;
+        const expectedTimestamps = Array.from({ length: 60 }, (_, i) => {
+            const d = new Date(latest);
+            d.setMinutes(d.getMinutes() - i);
+            d.setSeconds(0, 0);
+            return d.getTime();
+        });
+        const dataMap = new Map(sorted.map(d => [
+            new Date(d.timestamp).setSeconds(0, 0),
+            d
+        ]));
+        return expectedTimestamps.map(ts => {
+            const found = dataMap.get(ts);
+            if (found) return found;
+            return {
+                timestamp: new Date(ts),
+                value: null,
+                min: null,
+                max: null
+            };
+        });
     }
 
     async function fetchTemperatureData() {
@@ -78,18 +70,13 @@ export function useTemperatureData() {
                 min: parseFloat(item.min_value) || 0,
                 max: parseFloat(item.max_value) || 0
             })).filter(item => !isNaN(item.value))
-
             const sortedData = formattedData.sort((a, b) => a.timestamp - b.timestamp)
-            console.log('Real data formatted, length:', sortedData.length)
-
             if (sortedData.length === 0) {
-                console.log('Formatted data is empty, keeping previous data')
                 return
             }
-
-            const slidingData = createSlidingWindow(sortedData, lastDataRef.current)
-            setTemperatureData(slidingData)
-            lastDataRef.current = slidingData
+            const validatedData = validateConsecutiveTemperatureData(sortedData);
+            setTemperatureData(validatedData)
+            lastDataRef.current = validatedData
             setIsUsingMockData(false)
 
         } catch (err) {

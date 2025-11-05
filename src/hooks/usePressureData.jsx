@@ -31,6 +31,34 @@ export function usePressureData() {
         return slidingData
     }
 
+    function validateConsecutivePressureData(data) {
+        if (!Array.isArray(data) || data.length === 0) return [];
+        const sorted = [...data].sort((a, b) => b.timestamp - a.timestamp);
+        const latest = sorted[0].timestamp;
+        const expectedTimestamps = Array.from({ length: 60 }, (_, i) => {
+            const d = new Date(latest);
+            d.setMinutes(d.getMinutes() - i);
+            d.setSeconds(0, 0);
+            return d.getTime();
+        });
+        // Corrige: normaliza timestamp sem alterar objeto original
+        const dataMap = new Map(sorted.map(d => [
+            new Date(d.timestamp).setSeconds(0, 0),
+            d
+        ]));
+        // Preenche os 60 pontos, usando os dados reais quando existem, e null nos faltantes
+        return expectedTimestamps.map(ts => {
+            const found = dataMap.get(ts);
+            if (found) return found;
+            return {
+                timestamp: new Date(ts),
+                value: null,
+                min: null,
+                max: null
+            };
+        });
+    }
+
     async function fetchPressureData() {
         try {
             setLoading(true)
@@ -60,9 +88,10 @@ export function usePressureData() {
                 min: Number(d.min_value ?? d.min),
                 max: Number(d.max_value ?? d.max)
             }))
-            const slidingData = createSlidingWindow(parsedData, lastDataRef.current)
-            setPressureData(slidingData)
-            lastDataRef.current = slidingData
+            // Validação de leituras consecutivas
+            const validatedData = validateConsecutivePressureData(parsedData);
+            setPressureData(validatedData);
+            lastDataRef.current = validatedData
             setIsUsingMockData(false)
         } catch (err) {
             setError(err.message)
