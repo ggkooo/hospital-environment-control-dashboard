@@ -1,4 +1,24 @@
+import { useEffect, useState } from 'react'
+
 export function HumidityStats({ data }) {
+    const [visibleCards, setVisibleCards] = useState([])
+
+    useEffect(() => {
+        // Reset visibility when data changes
+        setVisibleCards([])
+
+        // Animate cards with staggered delay
+        const timeouts = []
+        for (let i = 0; i < 4; i++) {
+            const timeout = setTimeout(() => {
+                setVisibleCards(prev => [...prev, i])
+            }, i * 100 + 200) // Start after 200ms, then 100ms between each card
+            timeouts.push(timeout)
+        }
+
+        return () => timeouts.forEach(clearTimeout)
+    }, [data])
+
     if (!data || data.length === 0) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -55,9 +75,24 @@ export function HumidityStats({ data }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             {stats.map((stat, index) => (
-                <div key={index} className={`rounded-lg shadow-sm p-4 ${stat.bgColor}`} style={{ border: 'none' }}>
-                    <div className="text-sm font-medium text-gray-500 mb-1">{stat.label}</div>
-                    <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}{stat.unit}</div>
+                <div
+                    key={index}
+                    className={`bg-white rounded-lg shadow-sm p-4 transition-all duration-500 ${
+                        visibleCards.includes(index) 
+                            ? 'opacity-100 transform translate-y-0' 
+                            : 'opacity-0 transform translate-y-4'
+                    }`}
+                    style={{ border: 'none' }}
+                >
+                    <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-600 mb-1">{stat.label}</span>
+                        <div className="flex items-baseline gap-1">
+                            <span className={`text-2xl font-bold ${stat.color}`}>
+                                {stat.value}
+                            </span>
+                            <span className="text-sm text-gray-500">{stat.unit}</span>
+                        </div>
+                    </div>
                 </div>
             ))}
         </div>

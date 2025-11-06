@@ -6,12 +6,10 @@ export function NoiseChart({ data }) {
     const containerRef = useRef();
     const [dimensions, setDimensions] = useState({ width: 800, height: 400 });
     const [visible, setVisible] = useState(false);
-    // Tooltip state
-    const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, value: null, time: null });
 
-    // Animation: fade-in when chart is mounted (slower)
+    // Animation: fade-in when chart is mounted (faster)
     useEffect(() => {
-        const timer = setTimeout(() => setVisible(true), 600); // 600ms for slower fade-in
+        const timer = setTimeout(() => setVisible(true), 300); // 300ms for faster fade-in
         return () => clearTimeout(timer);
     }, []);
 
@@ -19,6 +17,8 @@ export function NoiseChart({ data }) {
         const TARGET_POINTS = 60;
         if (!originalData || originalData.length === 0) {
             const now = new Date();
+            // Subtrai 1 minuto do tempo atual para evitar inconsistência do ESP32
+            now.setMinutes(now.getMinutes() - 1);
             return Array.from({ length: TARGET_POINTS }, (_, i) => ({
                 timestamp: new Date(now.getTime() - ((TARGET_POINTS - 1 - i) * 60 * 1000)),
                 value: null,
@@ -152,27 +152,56 @@ export function NoiseChart({ data }) {
             .attr('stroke', d => d.isZero ? '#cbd5e1' : '#2563eb')
             .style('opacity', d => d.isZero ? 0.18 : 0.85)
             .on('mouseover', function(event, d) {
-                if (d.isZero) return;
-                const svgRect = svgRef.current.getBoundingClientRect();
-                setTooltip({
-                    visible: true,
-                    x: event.clientX - svgRect.left + 10,
-                    y: event.clientY - svgRect.top - 10,
-                    value: d.value,
-                    time: d.timestamp
-                });
+                d3.select(this)
+                    .style('opacity', 1)
+                    .attr('r', 5)
+                    .attr('stroke', d.isZero ? '#64748b' : '#2563eb')
+                    .attr('stroke-width', 2)
+                const tooltip = d3.select('body').append('div')
+                    .attr('class', 'noise-tooltip')
+                    .style('position', 'absolute')
+                    .style('background', d.isZero ? 'rgba(71,85,105,0.95)' : 'rgba(37,99,235,0.95)')
+                    .style('color', 'white')
+                    .style('padding', '8px 14px')
+                    .style('border-radius', '8px')
+                    .style('font-size', '13px')
+                    .style('pointer-events', 'none')
+                    .style('z-index', '1000')
+                    .style('border', 'none')
+                    .style('box-shadow', '0 4px 12px -1px rgba(16, 185, 129, 0.25)')
+                    .style('opacity', 0)
+                    .style('transition', 'opacity 0.25s ease')
+                if (d.isZero) {
+                    tooltip.html(`
+                        <div style="font-weight: 500;">Não existe dado para esta hora do sensor</div>
+                        <div style="opacity: 0.8; font-size: 12px;">${d.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    `)
+                } else {
+                    tooltip.html(`
+                        <div style="font-weight: 600; font-size: 15px;">${d.value != null ? d.value.toFixed(2) : '--'} dB</div>
+                        <div style="opacity: 0.8; font-size: 12px;">${d.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div style="margin-top: 4px; font-size: 11px; opacity: 0.7;">Min: ${d.min != null ? d.min.toFixed(2) : '--'} dB • Max: ${d.max != null ? d.max.toFixed(2) : '--'} dB</div>
+                    `)
+                }
+                setTimeout(() => {
+                    const tooltipNode = tooltip.node();
+                    const tooltipWidth = tooltipNode ? tooltipNode.offsetWidth : 120;
+                    const padding = 12;
+                    let left = event.pageX + padding;
+                    if (left + tooltipWidth > window.innerWidth - 10) {
+                        left = event.pageX - tooltipWidth - padding;
+                    }
+                    tooltip.style('left', left + 'px')
+                        .style('top', (event.pageY - 18) + 'px')
+                        .style('opacity', 1);
+                }, 0);
             })
-            .on('mousemove', function(event, d) {
-                if (d.isZero) return;
-                const svgRect = svgRef.current.getBoundingClientRect();
-                setTooltip(t => ({
-                    ...t,
-                    x: event.clientX - svgRect.left + 10,
-                    y: event.clientY - svgRect.top - 10
-                }));
-            })
-            .on('mouseout', function() {
-                setTooltip(t => ({ ...t, visible: false }));
+            .on('mouseout', function(event, d) {
+                d3.select(this)
+                    .style('opacity', d.isZero ? 0.18 : 0.85)
+                    .attr('r', 3)
+                    .attr('stroke-width', 0)
+                d3.selectAll('.noise-tooltip').remove()
             });
         const xTickCount = width < 640 ? 4 : 6;
         g.append('g')
@@ -198,7 +227,7 @@ export function NoiseChart({ data }) {
     }, [data, dimensions]);
 
     return (
-        <div ref={containerRef} className={`w-full bg-white rounded-lg shadow p-4 mb-6 transition-opacity duration-1000 ${visible ? 'opacity-100' : 'opacity-0'}`} style={{ border: 'none', position: 'relative' }}>
+        <div ref={containerRef} className={`w-full bg-white rounded-lg shadow p-4 mb-6 transition-opacity duration-600 ${visible ? 'opacity-100' : 'opacity-0'}`} style={{ border: 'none', position: 'relative' }}>
             <svg
                 ref={svgRef}
                 width={dimensions.width}
@@ -206,26 +235,6 @@ export function NoiseChart({ data }) {
                 className="overflow-visible"
                 style={{ border: 'none' }}
             />
-            {tooltip.visible && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        left: tooltip.x,
-                        top: tooltip.y,
-                        background: 'rgba(37,99,235,0.95)',
-                        color: 'white',
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        fontSize: '0.95rem',
-                        pointerEvents: 'none',
-                        zIndex: 10,
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
-                    }}
-                >
-                    <div><b>{tooltip.value?.toFixed(2)} dB</b></div>
-                    <div style={{ fontSize: '0.85em', opacity: 0.85 }}>{tooltip.time ? d3.timeFormat('%H:%M')(tooltip.time) : ''}</div>
-                </div>
-            )}
         </div>
     );
 }

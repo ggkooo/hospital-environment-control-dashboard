@@ -1,79 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
-import * as d3 from "d3";
-
-export function NoiseChart({ data }) {
-    const svgRef = useRef();
-    const containerRef = useRef();
-    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-
-    const padDataTo60Points = (originalData) => {
-        const TARGET_POINTS = 60;
-        if (!originalData || originalData.length === 0) {
-            const now = new Date();
-            return Array.from({ length: TARGET_POINTS }, (_, i) => ({
-                timestamp: new Date(now.getTime() - ((TARGET_POINTS - 1 - i) * 60 * 1000)),
-                value: null,
-                min: null,
-                max: null,
-                isZero: true
-            }));
-        }
-        return originalData.map(point => ({
-            ...point,
-            isZero: point.value === null || point.value === undefined || point.isZero === true
-        }));
-    };
-
-    useEffect(() => {
-        const updateDimensions = () => {
-            if (containerRef.current) {
-                const containerWidth = containerRef.current.offsetWidth;
-                let containerHeight;
-                if (containerWidth < 640) {
-                    containerHeight = Math.max(180, containerWidth * 0.4);
-                } else if (containerWidth < 1024) {
-                    containerHeight = Math.max(200, containerWidth * 0.35);
-                } else {
-                    containerHeight = Math.max(220, Math.min(280, containerWidth * 0.25));
-                }
-                setDimensions({
-                    width: containerWidth,
-                    height: containerHeight
-                });
-            }
-        };
-        const timeoutId = setTimeout(updateDimensions, 100);
-        let resizeTimeout;
-        const debouncedResize = () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(updateDimensions, 150);
-        };
-        window.addEventListener('resize', debouncedResize);
-        updateDimensions();
-        return () => {
-            clearTimeout(timeoutId);
-            window.removeEventListener('resize', debouncedResize);
-        };
-    }, []);
-
-    useEffect(() => {
-        const chartData = padDataTo60Points(data);
-        // ...d3 chart logic (similar to other charts, but for noise)
-        // For now, just clear svg
-        if (svgRef.current) {
-            d3.select(svgRef.current).selectAll('*').remove();
-            // Implement chart drawing here
-        }
-    }, [data, dimensions]);
-
-    return (
-        <div ref={containerRef} className="w-full h-96 bg-white rounded-lg shadow p-4 mb-6">
-            <svg ref={svgRef} width={dimensions.width} height={dimensions.height}></svg>
-        </div>
-    );
-}
+import { useEffect, useState } from 'react';
 
 export function NoiseStats({ data }) {
+    const [visibleCards, setVisibleCards] = useState([]);
+
+    useEffect(() => {
+        setVisibleCards([]);
+
+        const timeouts = [];
+        for (let i = 0; i < 4; i++) {
+            const timeout = setTimeout(() => {
+                setVisibleCards(prev => [...prev, i]);
+            }, i * 100 + 200);
+            timeouts.push(timeout);
+        }
+
+        return () => timeouts.forEach(clearTimeout);
+    }, [data]);
+
     if (!data || data.length === 0) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -101,8 +44,8 @@ export function NoiseStats({ data }) {
             label: 'Current',
             value: currentNoise !== null ? currentNoise.toFixed(2) : '--',
             unit: 'dB',
-            color: 'text-blue-600',
-            bgColor: 'bg-blue-50'
+            color: 'text-purple-600',
+            bgColor: 'bg-purple-50'
         },
         {
             label: `Average (${validData.length} min)`,
@@ -129,10 +72,25 @@ export function NoiseStats({ data }) {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {stats.map((stat, idx) => (
-                <div key={idx} className={`rounded-lg shadow-sm p-4 ${stat.bgColor}`} style={{ border: 'none' }}>
-                    <div className="text-sm font-medium mb-2">{stat.label}</div>
-                    <div className={`text-2xl font-bold ${stat.color}`}>{stat.value} <span className="text-base font-normal">{stat.unit}</span></div>
+            {stats.map((stat, index) => (
+                <div
+                    key={index}
+                    className={`bg-white rounded-lg shadow-sm p-4 transition-all duration-500 ${
+                        visibleCards.includes(index) 
+                            ? 'opacity-100 transform translate-y-0' 
+                            : 'opacity-0 transform translate-y-4'
+                    }`}
+                    style={{ border: 'none' }}
+                >
+                    <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-600 mb-1">{stat.label}</span>
+                        <div className="flex items-baseline gap-1">
+                            <span className={`text-2xl font-bold ${stat.color}`}>
+                                {stat.value}
+                            </span>
+                            <span className="text-sm text-gray-500">{stat.unit}</span>
+                        </div>
+                    </div>
                 </div>
             ))}
         </div>

@@ -7,9 +7,9 @@ export function ECO2Chart({ data }) {
     const [dimensions, setDimensions] = useState({ width: 800, height: 400 });
     const [visible, setVisible] = useState(false);
 
-    // Animation: fade-in when chart is mounted (slower)
+    // Animation: fade-in when chart is mounted (faster)
     useEffect(() => {
-        const timer = setTimeout(() => setVisible(true), 600); // 600ms for slower fade-in
+        const timer = setTimeout(() => setVisible(true), 300); // 300ms for faster fade-in
         return () => clearTimeout(timer);
     }, []);
 
@@ -17,6 +17,8 @@ export function ECO2Chart({ data }) {
         const TARGET_POINTS = 60;
         if (!originalData || originalData.length === 0) {
             const now = new Date();
+            // Subtrai 1 minuto do tempo atual para evitar inconsistência do ESP32
+            now.setMinutes(now.getMinutes() - 1);
             return Array.from({ length: TARGET_POINTS }, (_, i) => ({
                 timestamp: new Date(now.getTime() - ((TARGET_POINTS - 1 - i) * 60 * 1000)),
                 value: null,
@@ -238,7 +240,7 @@ export function ECO2Chart({ data }) {
     }, [data, dimensions]);
 
     return (
-        <div ref={containerRef} className={`w-full bg-white rounded-lg shadow p-4 mb-6 transition-opacity duration-1000 ${visible ? 'opacity-100' : 'opacity-0'}`} style={{ border: 'none', position: 'relative' }}>
+        <div ref={containerRef} className={`w-full bg-white rounded-lg shadow p-4 mb-6 transition-opacity duration-600 ${visible ? 'opacity-100' : 'opacity-0'}`} style={{ border: 'none', position: 'relative' }}>
             <svg
                 ref={svgRef}
                 width={dimensions.width}
