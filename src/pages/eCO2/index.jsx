@@ -3,6 +3,7 @@ import { Sidebar } from "../../components/Sidebar/index.jsx";
 import { Header } from "../../components/Header/index.jsx";
 import { ECO2Chart } from "./Chart.jsx";
 import { ECO2Stats } from "./eCO2Stats.jsx";
+import { DataInsights } from "../../components/DataInsights/index.jsx";
 import { useECO2Data } from "../../hooks/useECO2Data.jsx";
 import { Loading } from "../../components/Loading/index.jsx";
 
@@ -17,7 +18,7 @@ export function ECO2() {
             setShowLoading(true);
         } else {
             const elapsed = Date.now() - (loadingStart.current || Date.now());
-            const minTime = 730; // 0.73s delay
+            const minTime = 400; // 0.4s delay
             if (elapsed < minTime) {
                 const timeout = setTimeout(() => setShowLoading(false), minTime - elapsed);
                 return () => clearTimeout(timeout);
@@ -43,6 +44,7 @@ export function ECO2() {
                     <>
                         <ECO2Stats data={eco2Data} />
                         <ECO2Chart data={eco2Data} />
+                        <DataInsights data={eco2Data} sensorType="eco2" unit="ppm" />
                     </>
                 )}
             </div>
