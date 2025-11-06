@@ -9,44 +9,34 @@ export function usePressureData() {
     const intervalRef = useRef(null)
     const lastDataRef = useRef([])
 
-    const createSlidingWindow = (newData, previousData = []) => {
-        const TARGET_POINTS = 60
-        if (!newData || newData.length === 0) {
-            return previousData
-        }
-        if (previousData.length === 0) {
-            return newData.slice(-TARGET_POINTS)
-        }
-        const lastTimestamp = previousData.length > 0
-            ? Math.max(...previousData.map(d => d.timestamp.getTime()))
-            : 0
-        const reallyNewData = newData.filter(point =>
-            point.timestamp.getTime() > lastTimestamp
-        )
-        if (reallyNewData.length === 0) {
-            return previousData
-        }
-        const combinedData = [...previousData, ...reallyNewData]
-        const slidingData = combinedData.slice(-TARGET_POINTS)
-        return slidingData
-    }
-
     function validateConsecutivePressureData(data) {
-        if (!Array.isArray(data) || data.length === 0) return [];
-        const sorted = [...data].sort((a, b) => b.timestamp - a.timestamp);
-        const latest = sorted[0].timestamp;
+        // Sempre gerar 60 pontos baseados no tempo atual - 1 minuto
+        const now = new Date();
+        // Subtrai 1 minuto do tempo atual para evitar inconsistência do ESP32
+        now.setMinutes(now.getMinutes() - 1);
+
         const expectedTimestamps = Array.from({ length: 60 }, (_, i) => {
-            const d = new Date(latest);
+            const d = new Date(now);
             d.setMinutes(d.getMinutes() - i);
             d.setSeconds(0, 0);
             return d.getTime();
         });
-        // Corrige: normaliza timestamp sem alterar objeto original
+
+        if (!Array.isArray(data) || data.length === 0) {
+            return expectedTimestamps.map(ts => ({
+                timestamp: new Date(ts),
+                value: null,
+                min: null,
+                max: null
+            }));
+        }
+
+        const sorted = [...data].sort((a, b) => b.timestamp - a.timestamp);
         const dataMap = new Map(sorted.map(d => [
             new Date(d.timestamp).setSeconds(0, 0),
             d
         ]));
-        // Preenche os 60 pontos, usando os dados reais quando existem, e null nos faltantes
+
         return expectedTimestamps.map(ts => {
             const found = dataMap.get(ts);
             if (found) return found;
@@ -73,8 +63,9 @@ export function usePressureData() {
             const json = await res.json()
             const pressureArray = json?.data || []
             if (!Array.isArray(pressureArray) || pressureArray.length === 0) {
-                setPressureData([])
-                lastDataRef.current = []
+                const validatedData = validateConsecutivePressureData([]);
+                setPressureData(validatedData)
+                lastDataRef.current = validatedData
                 setIsUsingMockData(false)
                 setLoading(false)
                 return
@@ -95,6 +86,10 @@ export function usePressureData() {
             setIsUsingMockData(false)
         } catch (err) {
             setError(err.message)
+            const validatedData = validateConsecutivePressureData([]);
+            setPressureData(validatedData)
+            lastDataRef.current = validatedData
+            setIsUsingMockData(false)
         } finally {
             setLoading(false)
         }
