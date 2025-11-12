@@ -39,9 +39,9 @@ export function Home() {
                 <Header title='Hospital Environment Monitoring System' description="Real-time monitoring of the hospital's environmental conditions." />
                 <FetchDateTime lastUpdated={lastUpdated} />
 
-                <LocationSection title={(<><IoLocationOutline /> Pharmacy</>)} data={liveData ?? initialData} />
-                <LocationSection title={(<><IoLocationOutline /> ICU</>)} />
-                <LocationSection title={(<><IoLocationOutline /> Reception</>)} />
+                <LocationSection title={(<><IoLocationOutline /> Pharmacy</>)} data={liveData ?? initialData} lastUpdated={lastUpdated} />
+                <LocationSection title={(<><IoLocationOutline /> ICU</>)} lastUpdated={lastUpdated} />
+                <LocationSection title={(<><IoLocationOutline /> Reception</>)} lastUpdated={lastUpdated} />
 
                 {showLoading && (
                     <Loading text='Fetching data...' />
