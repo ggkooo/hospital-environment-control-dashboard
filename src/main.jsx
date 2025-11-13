@@ -9,6 +9,7 @@ import {Humidity} from "./pages/Humidity/index.jsx";
 import { Pressure } from "./pages/Pressure/index.jsx";
 import {Noise} from "./pages/Noise/index.jsx";
 import {ECO2} from "./pages/eCO2/index.jsx";
+import {TVOC} from "./pages/TVOC/index.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -20,6 +21,7 @@ createRoot(document.getElementById('root')).render(
               <Route path='/pressure' element={<Pressure/>}/>
               <Route path='/noise' element={<Noise/>}/>
               <Route path='/eco2' element={<ECO2/>}/>
+              <Route path='/tvoc' element={<TVOC/>}/>
 
               <Route path='/administration'>
                   <Route path='users' element={<App/>}/>
