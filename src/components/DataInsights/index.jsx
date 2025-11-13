@@ -70,7 +70,8 @@ export function DataInsights({ data, sensorType, unit }) {
             humidity: { good: [40, 60], warning: [30, 70], critical: [20, 80] },
             pressure: { good: [1010, 1020], warning: [1000, 1030], critical: [990, 1040] },
             noise: { good: [0, 50], warning: [50, 70], critical: [70, 100] },
-            eco2: { good: [400, 1000], warning: [1000, 1500], critical: [1500, 5000] }
+            eco2: { good: [400, 1000], warning: [1000, 1500], critical: [1500, 5000] },
+            tvoc: { good: [0, 220], warning: [220, 660], critical: [660, 2200] }
         };
 
         const range = ranges[type];
@@ -96,8 +97,8 @@ export function DataInsights({ data, sensorType, unit }) {
         if (Math.abs(trendPercentage) < 1) return 'text-gray-600';
 
         // For temperature, humidity, pressure: moderate increase might be bad
-        // For noise, eco2: any increase is typically bad
-        if (['noise', 'eco2'].includes(sensorType)) {
+        // For noise, eco2, tvoc: any increase is typically bad
+        if (['noise', 'eco2', 'tvoc'].includes(sensorType)) {
             return trendPercentage > 0 ? 'text-red-600' : 'text-green-600';
         } else {
             return Math.abs(trendPercentage) > 5 ? 'text-orange-600' : 'text-blue-600';
