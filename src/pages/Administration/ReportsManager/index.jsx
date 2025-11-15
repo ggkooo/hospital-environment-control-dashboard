@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { TYPES, ICON_LABEL_MAP } from '../../../utils/sensorConstants'
-import { FaCalendarAlt, FaChevronDown, FaFileDownload, FaFilter, FaSpinner, FaClock } from 'react-icons/fa'
+import { FaCalendarAlt, FaChevronDown, FaFileDownload, FaFilter, FaSpinner } from 'react-icons/fa'
 import { Sidebar } from "../../../components/Sidebar/index.jsx"
 import { Header } from "../../../components/Header/index.jsx"
 import { useReportData } from '../../../hooks/useReportData.jsx'
@@ -10,26 +10,15 @@ export function ReportsManager() {
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
     const [selectedDataType, setSelectedDataType] = useState('all')
-    const [selectedGranularity, setSelectedGranularity] = useState('minute')
+    const [selectedGranularity, setSelectedGranularity] = useState('hourly')
     const [selectedArea, setSelectedArea] = useState('pharmacy')
     const [selectedLanguage, setSelectedLanguage] = useState('en')
-    const [startTime, setStartTime] = useState('00:00')
-    const [endTime, setEndTime] = useState('23:59')
     const [isDataTypeOpen, setIsDataTypeOpen] = useState(false)
     const [isGranularityOpen, setIsGranularityOpen] = useState(false)
     const [isAreaOpen, setIsAreaOpen] = useState(false)
     const [isLanguageOpen, setIsLanguageOpen] = useState(false)
     const [availableDays, setAvailableDays] = useState([])
-    const { fetchReportData, loading, testApiConnectivity, fetchAvailableDays, suggestAlternativePeriods } = useReportData()
-
-    const handleTestConnectivity = async () => {
-        const isConnected = await testApiConnectivity()
-        if (isConnected) {
-            alert('✓ API connectivity test successful! The sensor data API is responding correctly.')
-        } else {
-            alert('✗ API connectivity test failed. Please check your internet connection and try again later.')
-        }
-    }
+    const { fetchReportData, loading, fetchAvailableDays, suggestAlternativePeriods } = useReportData()
 
     const handleSuggestAlternatives = async () => {
         console.log('Searching for alternative date periods with available data...')
@@ -50,25 +39,6 @@ export function ReportsManager() {
         }
     }
 
-    const handleDebugInfo = () => {
-        const debugInfo = {
-            selectedDates: { startDate, endDate },
-            selectedSettings: {
-                dataType: selectedDataType,
-                granularity: selectedGranularity,
-                timeRange: `${startTime} - ${endTime}`
-            },
-            availableDays: availableDays.length,
-            recentAvailableDays: availableDays.slice(0, 5),
-            currentDateTime: new Date().toISOString(),
-            apiBaseUrl: 'https://api.giordanoberwig.xyz/api/sensor-data',
-            hasApiKey: !!import.meta.env.VITE_API_KEY
-        }
-
-        console.log('🔍 Debug Information:', debugInfo)
-        alert(`Debug info logged to console. Available data days: ${availableDays.length}. Check browser console for full details.`)
-    }
-
     // Função para formatar data corretamente sem problemas de timezone
     const formatDateBR = (dateString) => {
         const date = new Date(dateString + 'T00:00:00')
@@ -83,11 +53,22 @@ export function ReportsManager() {
         }))
     ]
 
+    // Calcular diferença de dias entre as datas
+    const calculateDaysDifference = () => {
+        if (!startDate || !endDate) return 0
+        const start = new Date(startDate)
+        const end = new Date(endDate)
+        const diffTime = Math.abs(end - start)
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        return diffDays
+    }
+
+    const daysDifference = calculateDaysDifference()
+    const hasMinimumDaysForDaily = daysDifference >= 3
+
     const granularityOptions = [
-        { value: 'minute', label: 'Per Minute', description: 'Detailed minute-by-minute data', disabled: false },
         { value: 'hourly', label: 'Per Hour', description: 'Hourly aggregated data', disabled: false },
-        { value: 'daily', label: 'Per Day', description: 'Daily aggregated data', disabled: false },
-        { value: 'week', label: 'Per Week', description: 'Weekly aggregated data (frontend aggregation)', disabled: true },
+        { value: 'daily', label: 'Per Day', description: 'Daily aggregated data', disabled: !hasMinimumDaysForDaily },
         { value: 'month', label: 'Per Month', description: 'Monthly aggregated data (frontend aggregation)', disabled: true }
     ]
 
@@ -129,25 +110,23 @@ export function ReportsManager() {
         initializeDates()
     }, [fetchAvailableDays])
 
-    // Função para definir períodos de data comuns
-    const setQuickDateRange = (days) => {
-        const endDate = new Date()
-        const startDate = new Date()
+    // Ajustar granularidade automaticamente baseado nas datas selecionadas
+    useEffect(() => {
+        if (!startDate || !endDate) return
 
-        if (days === 0) {
-            // Hoje
-            setStartDate(endDate.toISOString().split('T')[0])
-            setEndDate(endDate.toISOString().split('T')[0])
-        } else {
-            // Período de X dias atrás até ontem
-            startDate.setDate(endDate.getDate() - days)
-            const yesterday = new Date()
-            yesterday.setDate(endDate.getDate() - 1)
+        const daysDiff = calculateDaysDifference()
+        const sameDay = startDate === endDate
 
-            setStartDate(startDate.toISOString().split('T')[0])
-            setEndDate(yesterday.toISOString().split('T')[0])
+        // Se for o mesmo dia, forçar hourly
+        if (sameDay && selectedGranularity !== 'hourly') {
+            setSelectedGranularity('hourly')
         }
-    }
+        // Se não tiver pelo menos 3 dias e estiver selecionado daily, mudar para hourly
+        else if (daysDiff < 3 && selectedGranularity === 'daily') {
+            setSelectedGranularity('hourly')
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [startDate, endDate])
 
     const handleGenerateReport = async () => {
         if (!startDate || !endDate) {
@@ -181,37 +160,34 @@ export function ReportsManager() {
             if (!confirm) return
         }
 
-        // Validação adicional para horários quando granularidade é minute
-        if (selectedGranularity === 'minute') {
-            if (startDate === endDate && startTime >= endTime) {
-                alert('Para o mesmo dia, o horário de início deve ser anterior ao horário de fim')
-                return
-            }
+        // Validar granularidade baseada nas datas
+        if (startDate === endDate && selectedGranularity !== 'hourly') {
+            alert('Para o mesmo dia, apenas a granularidade "Per Hour" está disponível.')
+            setSelectedGranularity('hourly')
+            return
+        }
+
+        if (daysDifference < 3 && selectedGranularity === 'daily') {
+            alert('A granularidade "Per Day" requer pelo menos 3 dias de diferença entre as datas.')
+            setSelectedGranularity('hourly')
+            return
         }
 
         try {
             console.log('Iniciando busca de dados para o relatório...', {
                 startDate,
                 endDate,
-                startTime: selectedGranularity === 'minute' ? startTime : undefined,
-                endTime: selectedGranularity === 'minute' ? endTime : undefined,
                 dataType: selectedDataType,
                 granularity: selectedGranularity,
                 periodDays: Math.round(daysDifference * 100) / 100
             })
 
             // Buscar dados do relatório com granularidade especificada
-            const reportData = selectedGranularity === 'minute'
-                ? await fetchReportData(startDate, endDate, selectedDataType, selectedGranularity, startTime, endTime)
-                : await fetchReportData(startDate, endDate, selectedDataType, selectedGranularity)
+            const reportData = await fetchReportData(startDate, endDate, selectedDataType, selectedGranularity)
 
             console.log('Gerando PDF com gráficos...')
             // Gerar PDF (agora com gráficos e estatísticas avançadas)
-            const pdfParams = selectedGranularity === 'minute'
-                ? [reportData, startDate, endDate, selectedDataType, selectedGranularity, selectedArea, selectedLanguage, startTime, endTime]
-                : [reportData, startDate, endDate, selectedDataType, selectedGranularity, selectedArea, selectedLanguage]
-
-            await generatePDFReport(...pdfParams)
+            await generatePDFReport(reportData, startDate, endDate, selectedDataType, selectedGranularity, selectedArea, selectedLanguage)
 
         } catch (err) {
             console.error('Erro ao gerar relatório:', err)
@@ -238,9 +214,7 @@ Gostaria de buscar períodos com dados disponíveis?`
 Verifique:
 • Sua conexão com a internet
 • Disponibilidade do servidor da API
-• Tente novamente em alguns momentos
-
-Clique em "Test API" para verificar a conexão.`
+• Tente novamente em alguns momentos`
             } else if (err.message.includes('Rate limited')) {
                 userMessage = `API com limite de requisições: Muitas solicitações foram feitas para a API dos sensores.
 
@@ -285,7 +259,7 @@ Por favor, selecione datas que já ocorreram.`
                         <h2 className="text-xl font-semibold text-gray-800">Report Configuration</h2>
                     </div>
 
-                    <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 ${selectedGranularity === 'minute' ? 'xl:grid-cols-3' : 'xl:grid-cols-3'}`}>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:grid-cols-3">
                         {/* Start Date Picker */}
                         <div className="space-y-2">
                             <label className="block text-sm font-medium text-gray-700">
@@ -331,43 +305,6 @@ Por favor, selecione datas que já ocorreram.`
                                 Selecione a data de fim do período para o relatório
                             </div>
                         </div>
-
-                        {/* Time Range - Only shown when granularity is 'minute' */}
-                        {selectedGranularity === 'minute' && (
-                            <>
-                                {/* Start Time */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">
-                                        Start Time
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type="time"
-                                            value={startTime}
-                                            onChange={(e) => setStartTime(e.target.value)}
-                                            className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                                        />
-                                        <FaClock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                    </div>
-                                </div>
-
-                                {/* End Time */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">
-                                        End Time
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type="time"
-                                            value={endTime}
-                                            onChange={(e) => setEndTime(e.target.value)}
-                                            className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                                        />
-                                        <FaClock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                    </div>
-                                </div>
-                            </>
-                        )}
 
                         {/* Data Type Select */}
                         <div className="space-y-2">
@@ -576,66 +513,8 @@ Por favor, selecione datas que já ocorreram.`
                         </div>
                     </div>
 
-                    {/* Quick Date Range Buttons */}
-                    <div className="flex flex-wrap gap-2 mt-6">
-                        <div className="w-full text-sm text-gray-600 mb-2">Seleções rápidas de período:</div>
-                        <button
-                            onClick={() => setQuickDateRange(0)}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200"
-                        >
-                            Hoje
-                        </button>
-                        <button
-                            onClick={() => setQuickDateRange(1)}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200"
-                        >
-                            Ontem
-                        </button>
-                        <button
-                            onClick={() => setQuickDateRange(7)}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200"
-                        >
-                            Últimos 7 dias
-                        </button>
-                        <button
-                            onClick={() => setQuickDateRange(30)}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200"
-                        >
-                            Últimos 30 dias
-                        </button>
-                    </div>
-
                     {/* Generate Report Button */}
-                    <div className="flex justify-between items-center mt-8">
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handleTestConnectivity}
-                                disabled={loading}
-                                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 focus:ring-4 focus:ring-gray-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                            >
-                                <FaFilter />
-                                Testar API
-                            </button>
-
-                            <button
-                                onClick={handleSuggestAlternatives}
-                                disabled={loading}
-                                className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 focus:ring-4 focus:ring-green-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                            >
-                                <FaCalendarAlt />
-                                Buscar Dados
-                            </button>
-
-                            <button
-                                onClick={handleDebugInfo}
-                                disabled={loading}
-                                className="flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-700 font-medium rounded-lg hover:bg-yellow-200 focus:ring-4 focus:ring-yellow-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                            >
-                                <FaClock />
-                                Info Debug
-                            </button>
-                        </div>
-
+                    <div className="flex justify-end items-center mt-8">
                         <button
                             onClick={handleGenerateReport}
                             disabled={!startDate || !endDate || loading}
@@ -696,7 +575,7 @@ Por favor, selecione datas que já ocorreram.`
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Duration:</span>
                                 <span className="font-medium text-gray-900">
-                                    {Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24))} days
+                                    {Math.max(1, Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)))} days
                                 </span>
                             </div>
                         </div>
