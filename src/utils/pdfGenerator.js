@@ -481,9 +481,9 @@ async function createHistogram(values, sensorType, unit, selectedLanguage = 'en'
         const chart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['No Data'],
+                labels: [getTranslation(selectedLanguage, 'noData')],
                 datasets: [{
-                    label: 'Frequency',
+                    label: getTranslation(selectedLanguage, 'frequency'),
                     data: [0],
                     backgroundColor: 'rgba(156, 163, 175, 0.6)',
                     borderColor: '#9CA3AF',
@@ -495,7 +495,7 @@ async function createHistogram(values, sensorType, unit, selectedLanguage = 'en'
                 plugins: {
                     title: {
                         display: true,
-                        text: `Distribution - No Valid Data`,
+                        text: `${getTranslation(selectedLanguage, 'distribution')} - ${getTranslation(selectedLanguage, 'noValidData')}`,
                         font: { size: 14, weight: 'bold' }
                     }
                 },
@@ -525,7 +525,7 @@ async function createHistogram(values, sensorType, unit, selectedLanguage = 'en'
             data: {
                 labels: [`${formatNumber(min, selectedLanguage)} ${unit}`],
                 datasets: [{
-                    label: 'Frequency',
+                    label: getTranslation(selectedLanguage, 'frequency'),
                     data: [validValues.length],
                     backgroundColor: 'rgba(59, 130, 246, 0.6)',
                     borderColor: '#3B82F6',
@@ -537,7 +537,7 @@ async function createHistogram(values, sensorType, unit, selectedLanguage = 'en'
                 plugins: {
                     title: {
                         display: true,
-                        text: `Distribution (All values equal)`,
+                        text: `${getTranslation(selectedLanguage, 'distribution')} (${getTranslation(selectedLanguage, 'allValuesEqual')})`,
                         font: { size: 14, weight: 'bold' }
                     }
                 },
@@ -577,7 +577,7 @@ async function createHistogram(values, sensorType, unit, selectedLanguage = 'en'
         data: {
             labels: binLabels,
             datasets: [{
-                label: 'Frequency',
+                label: getTranslation(selectedLanguage, 'frequency'),
                 data: binCounts,
                 backgroundColor: 'rgba(59, 130, 246, 0.6)',
                 borderColor: '#3B82F6',
@@ -608,7 +608,7 @@ async function createHistogram(values, sensorType, unit, selectedLanguage = 'en'
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Frequency'
+                        text: getTranslation(selectedLanguage, 'frequency')
                     }
                 }
             }
@@ -740,7 +740,7 @@ export async function generatePDFReport(data, startDate, endDate, dataType, gran
     doc.setTextColor(75, 85, 99) // gray-600
     doc.setFont('helvetica', 'normal')
 
-    const aggregationNote = granularity !== 'minute' ? ' (Frontend Aggregated)' : ''
+    const aggregationNote = granularity !== 'minute' ? ` ${getTranslation(selectedLanguage, 'frontendAggregated')}` : ''
     const dataTypeLabel = dataType === 'all' ? getTranslation(selectedLanguage, 'allDataTypes') : getTranslation(selectedLanguage, dataTypeKeys[dataType]) || ICON_LABEL_MAP[dataType]
     const granularityLabel = getTranslation(selectedLanguage, granularityKeys[granularity]) || granularityKeys.minute
     const areaLabel = getTranslation(selectedLanguage, areaKeys[selectedArea]) || selectedArea
@@ -761,7 +761,7 @@ export async function generatePDFReport(data, startDate, endDate, dataType, gran
         endDateObj = new Date(endDate);
     }
 
-    const durationDays = Math.ceil((endDateObj - startDateObj) / (1000 * 60 * 60 * 24))
+    const durationDays = Math.max(1, Math.ceil((endDateObj - startDateObj) / (1000 * 60 * 60 * 24)))
 
     const reportInfo = [
         [`${getTranslation(selectedLanguage, 'reportPeriod')}:`, `${formatReportDate(startDate)} - ${formatReportDate(endDate)}`],
@@ -770,7 +770,7 @@ export async function generatePDFReport(data, startDate, endDate, dataType, gran
         [`${getTranslation(selectedLanguage, 'hospitalArea')}:`, areaLabel],
         [`${getTranslation(selectedLanguage, 'language')}:`, getLanguageName(selectedLanguage)],
         [`${getTranslation(selectedLanguage, 'duration')}:`, `${durationDays} ${getTranslation(selectedLanguage, 'days')}`],
-        ['Total Data Points:', Object.values(data).reduce((sum, sensorData) => sum + sensorData.length, 0)]
+        [`${getTranslation(selectedLanguage, 'totalDataPoints')}:`, Object.values(data).reduce((sum, sensorData) => sum + sensorData.length, 0)]
     ]
 
     // Verificar se há espaço para a tabela
@@ -822,22 +822,22 @@ export async function generatePDFReport(data, startDate, endDate, dataType, gran
 
         // Estatísticas avançadas com tradução
         const statsData = [
-            ['Count (Valid)', stats.count.toString()],
-            ['Total Data Points', stats.dataPoints.toString()],
-            ['Data Completeness', `${formatNumber(stats.completeness, selectedLanguage)}%`],
-            [getTranslation(selectedLanguage, 'average'), stats.count > 0 ? `${formatNumber(stats.mean, selectedLanguage)} ${unit}` : 'N/A'],
-            ['Median', stats.count > 0 ? `${formatNumber(stats.median, selectedLanguage)} ${unit}` : 'N/A'],
-            [getTranslation(selectedLanguage, 'standardDeviation'), stats.count > 0 ? `${formatNumber(stats.stdDev, selectedLanguage)} ${unit}` : 'N/A'],
-            [getTranslation(selectedLanguage, 'minimum'), stats.count > 0 ? `${formatNumber(stats.min, selectedLanguage)} ${unit}` : 'N/A'],
-            ['Q1 (25%)', stats.count > 0 ? `${formatNumber(stats.q1, selectedLanguage)} ${unit}` : 'N/A'],
-            ['Q3 (75%)', stats.count > 0 ? `${formatNumber(stats.q3, selectedLanguage)} ${unit}` : 'N/A'],
-            [getTranslation(selectedLanguage, 'maximum'), stats.count > 0 ? `${formatNumber(stats.max, selectedLanguage)} ${unit}` : 'N/A'],
-            ['Coeff. of Variation', stats.count > 0 ? `${formatNumber(stats.coeffVar, selectedLanguage)}%` : 'N/A'],
-            ['Range', stats.count > 0 ? `${formatNumber(stats.max - stats.min, selectedLanguage)} ${unit}` : 'N/A']
+            [getTranslation(selectedLanguage, 'countValid'), stats.count.toString()],
+            [getTranslation(selectedLanguage, 'totalDataPoints'), stats.dataPoints.toString()],
+            [getTranslation(selectedLanguage, 'dataCompleteness'), `${formatNumber(stats.completeness, selectedLanguage)}%`],
+            [getTranslation(selectedLanguage, 'average'), stats.count > 0 ? `${formatNumber(stats.mean, selectedLanguage)} ${unit}` : getTranslation(selectedLanguage, 'notAvailable')],
+            [getTranslation(selectedLanguage, 'median'), stats.count > 0 ? `${formatNumber(stats.median, selectedLanguage)} ${unit}` : getTranslation(selectedLanguage, 'notAvailable')],
+            [getTranslation(selectedLanguage, 'standardDeviation'), stats.count > 0 ? `${formatNumber(stats.stdDev, selectedLanguage)} ${unit}` : getTranslation(selectedLanguage, 'notAvailable')],
+            [getTranslation(selectedLanguage, 'minimum'), stats.count > 0 ? `${formatNumber(stats.min, selectedLanguage)} ${unit}` : getTranslation(selectedLanguage, 'notAvailable')],
+            [getTranslation(selectedLanguage, 'q1'), stats.count > 0 ? `${formatNumber(stats.q1, selectedLanguage)} ${unit}` : getTranslation(selectedLanguage, 'notAvailable')],
+            [getTranslation(selectedLanguage, 'q3'), stats.count > 0 ? `${formatNumber(stats.q3, selectedLanguage)} ${unit}` : getTranslation(selectedLanguage, 'notAvailable')],
+            [getTranslation(selectedLanguage, 'maximum'), stats.count > 0 ? `${formatNumber(stats.max, selectedLanguage)} ${unit}` : getTranslation(selectedLanguage, 'notAvailable')],
+            [getTranslation(selectedLanguage, 'coeffVariation'), stats.count > 0 ? `${formatNumber(stats.coeffVar, selectedLanguage)}%` : getTranslation(selectedLanguage, 'notAvailable')],
+            [getTranslation(selectedLanguage, 'range'), stats.count > 0 ? `${formatNumber(stats.max - stats.min, selectedLanguage)} ${unit}` : getTranslation(selectedLanguage, 'notAvailable')]
         ]
 
         autoTable(doc, {
-            head: [[getTranslation(selectedLanguage, 'statistics'), 'Value']],
+            head: [[getTranslation(selectedLanguage, 'statistics'), getTranslation(selectedLanguage, 'value')]],
             body: statsData,
             startY: yPosition,
             margin: { left: margin, right: margin },
@@ -879,7 +879,7 @@ export async function generatePDFReport(data, startDate, endDate, dataType, gran
             doc.setFontSize(12)
             doc.setTextColor(220, 38, 38) // red-600
             doc.setFont('helvetica', 'normal')
-            doc.text('Error generating charts for this data type', margin, yPosition)
+            doc.text(getTranslation(selectedLanguage, 'errorGeneratingCharts'), margin, yPosition)
             yPosition += 20
         }
 
