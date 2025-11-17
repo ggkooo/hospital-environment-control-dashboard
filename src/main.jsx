@@ -12,6 +12,7 @@ import {ECO2} from "./pages/eCO2/index.jsx";
 import {TVOC} from "./pages/TVOC/index.jsx";
 import {ReportsManager} from "./pages/Administration/ReportsManager/index.jsx";
 import {Users} from "./pages/Administration/Users/index.jsx";
+import {Sectors} from "./pages/Administration/Sectors/index.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -26,6 +27,7 @@ createRoot(document.getElementById('root')).render(
               <Route path='/tvoc' element={<TVOC/>}/>
 
               <Route path='/administration'>
+                  <Route path='sectors' element={<Sectors/>}/>
                   <Route path='users' element={<Users/>}/>
                   <Route path='access-log' element={<App/>}/>
                   <Route path='reports-manager' element={<ReportsManager/>}/>
