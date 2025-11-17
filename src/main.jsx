@@ -10,6 +10,7 @@ import { Pressure } from "./pages/Pressure/index.jsx";
 import {Noise} from "./pages/Noise/index.jsx";
 import {ECO2} from "./pages/eCO2/index.jsx";
 import {TVOC} from "./pages/TVOC/index.jsx";
+import {ReportsManager} from "./pages/Administration/ReportsManager/index.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -26,7 +27,7 @@ createRoot(document.getElementById('root')).render(
               <Route path='/administration'>
                   <Route path='users' element={<App/>}/>
                   <Route path='access-log' element={<App/>}/>
-                  <Route path='reports-manager' element={<App/>}/>
+                  <Route path='reports-manager' element={<ReportsManager/>}/>
               </Route>
           </Routes>
       </BrowserRouter>
