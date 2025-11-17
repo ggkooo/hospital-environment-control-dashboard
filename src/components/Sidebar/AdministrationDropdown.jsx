@@ -4,7 +4,8 @@ import {
     IoDocumentTextOutline,
     IoPeopleOutline,
     IoShieldCheckmarkOutline,
-    IoStatsChartOutline
+    IoStatsChartOutline,
+    IoBusinessOutline
 } from "react-icons/io5";
 import {Link} from "react-router";
 
@@ -25,6 +26,7 @@ export function SidebarAdministrationMenu({ adminOpen, setAdminOpen }) {
 
             {adminOpen && (
                 <div className='mt-2 ml-4 flex flex-col gap-1'>
+                    <Link className='p-2 hover:bg-hover-primary rounded-md flex items-center gap-2' to="/administration/sectors"><IoBusinessOutline /> Sectors</Link>
                     <Link className='p-2 hover:bg-hover-primary rounded-md flex items-center gap-2' to="/administration/users"><IoPeopleOutline /> Users</Link>
                     <Link className='p-2 hover:bg-hover-primary rounded-md flex items-center gap-2' to="/administration/access-log"><IoDocumentTextOutline /> Access Log</Link>
                     <Link className='p-2 hover:bg-hover-primary rounded-md flex items-center gap-2' to="/administration/reports-manager"><IoStatsChartOutline /> Reports Manager</Link>
