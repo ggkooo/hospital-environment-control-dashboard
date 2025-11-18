@@ -1,4 +1,4 @@
-export function RoleModal({ modalOpen, modalMode, formData, handleFormChange, loading, error, closeModal, handleSubmit, handlePermissionsChange }) {
+export function RoleModal({ modalOpen, modalMode, formData, handleFormChange, loading, error, closeModal, handleSubmit, handlePermissionsChange, sectors }) {
     const availablePermissions = [
         { path: '/', label: 'Home' },
         { path: '/temperature', label: 'Temperature' },
@@ -63,21 +63,25 @@ export function RoleModal({ modalOpen, modalMode, formData, handleFormChange, lo
                                 disabled={loading}
                                 rows="3"
                             />
+                            <select
+                                name="sector"
+                                value={formData.sector}
+                                onChange={handleFormChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 custom-select"
+                                disabled={loading}
+                            >
+                                <option value="">Select Sector</option>
+                                {Array.isArray(sectors) && sectors.map(sector => (
+                                    <option key={sector.name} value={sector.name}>{sector.name}</option>
+                                ))}
+                            </select>
                             <input
                                 name="chief"
                                 value={formData.chief}
                                 onChange={handleFormChange}
                                 placeholder="Chief"
                                 className="w-full p-3 border border-gray-300 rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                disabled={loading}
-                            />
-                            <input
-                                name="sector"
-                                value={formData.sector}
-                                onChange={handleFormChange}
-                                placeholder="Sector"
-                                className="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                disabled={loading}
+                                disabled
                             />
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
