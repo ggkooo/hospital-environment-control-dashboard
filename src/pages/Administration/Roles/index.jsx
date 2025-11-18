@@ -9,7 +9,6 @@ import { DeleteModal } from "./components/DeleteModal.jsx"
 
 export function Roles() {
     const [roles, setRoles] = useState([])
-    const [loadingRoles, setLoadingRoles] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [sortBy, setSortBy] = useState('name')
     const [sortOrder, setSortOrder] = useState('asc')
@@ -25,6 +24,8 @@ export function Roles() {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
     const [rolesToDelete, setRolesToDelete] = useState([])
     const [expandedRoleId, setExpandedRoleId] = useState(null)
+    const [sectors, setSectors] = useState([])
+    const [loadingRoles] = useState(false)
 
     const availablePermissions = [
         { path: '/', label: 'Home' },
@@ -42,14 +43,43 @@ export function Roles() {
     ]
 
     useEffect(() => {
-        // Mock data for roles
-        const mockRoles = [
-            { id: 1, name: 'Doctor', description: 'Medical professional', chief: 'Dr. Smith', sector: 'Emergency', status: 'active', permissions: ['/', '/temperature', '/humidity', '/pressure', '/noise', '/eco2', '/tvoc'] },
-            { id: 2, name: 'Nurse', description: 'Nursing staff', chief: 'Dr. Smith', sector: 'Emergency', status: 'active', permissions: ['/', '/temperature', '/humidity'] },
-            { id: 3, name: 'Admin', description: 'Administrative role', chief: 'Mr. Johnson', sector: 'Administration', status: 'inactive', permissions: ['/', '/administration/sectors', '/administration/users', '/administration/access-log', '/administration/reports-manager', '/administration/roles'] },
-            // Add more mock data as needed
-        ]
-        setRoles(mockRoles)
+        // Fetch roles from API
+        fetch('/api/roles', {
+            headers: {
+                'X-API-KEY': import.meta.env.VITE_API_KEY
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => setRoles(data))
+            .catch(error => {
+                console.error('Error fetching roles:', error);
+                setRoles([]); // Ensure roles is an array
+            });
+    }, [])
+
+    useEffect(() => {
+        // Fetch sectors from API
+        fetch('/api/sectors', {
+            headers: {
+                'X-API-KEY': import.meta.env.VITE_API_KEY
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => setSectors(data))
+            .catch(error => {
+                console.error('Error fetching sectors:', error);
+                setSectors([]); // Ensure sectors is an array
+            });
     }, [])
 
     const filteredRoles = roles.filter(role =>
@@ -112,7 +142,13 @@ export function Roles() {
     }
 
     const handleFormChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value })
+        const { name, value } = e.target;
+        if (name === 'sector') {
+            const selectedSector = sectors.find(s => s.name === value);
+            setFormData({ ...formData, sector: value, chief: selectedSector ? selectedSector.chief : formData.chief });
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     }
 
     const handlePermissionsChange = (permissions) => {
@@ -123,13 +159,38 @@ export function Roles() {
         setLoading(true)
         setError('')
         try {
-            // Mock save logic
-            const newRole = {
-                id: modalMode === 'add' ? Date.now() : selectedRole.id,
+            // Build the JSON for the role
+            const roleData = {
                 ...formData
             }
+            // Remove id for add, or include for edit
+            if (modalMode === 'edit') {
+                roleData.id = selectedRole.id;
+            }
+
+            const url = modalMode === 'edit' ? `/api/roles/${selectedRole.id}` : '/api/roles';
+            const method = modalMode === 'add' ? 'POST' : 'PUT';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-KEY': import.meta.env.VITE_API_KEY
+                },
+                body: JSON.stringify(roleData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('API Response:', result);
+
+            // Update local state with the result or mock
+            const newRole = result || roleData;
             if (modalMode === 'add') {
-                setRoles([...roles, newRole])
+                setRoles([...roles, { ...newRole, id: Date.now() }]); // Assume API returns id or use timestamp
             } else {
                 setRoles(roles.map(role =>
                     role.id === selectedRole.id ? newRole : role
@@ -145,7 +206,16 @@ export function Roles() {
 
     const handleDelete = async () => {
         try {
-            // Mock delete
+            const promises = rolesToDelete.map(id =>
+                fetch(`/api/roles/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-API-KEY': import.meta.env.VITE_API_KEY
+                    }
+                }).then(res => res.ok ? null : Promise.reject(res))
+            )
+            await Promise.all(promises)
+            // Update local state
             setRoles(roles.filter(role => !rolesToDelete.includes(role.id)))
             setDeleteModalOpen(false)
             setRolesToDelete([])
@@ -164,7 +234,19 @@ export function Roles() {
         const allActive = selectedRoleObjects.every(role => role.status === 'active')
         const newStatus = allActive ? 'inactive' : 'active'
         try {
-            // Mock update
+            // Send PUT for each selected role
+            const promises = selectedRoleObjects.map(role =>
+                fetch(`/api/roles/${role.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-KEY': import.meta.env.VITE_API_KEY
+                    },
+                    body: JSON.stringify({ ...role, status: newStatus })
+                }).then(res => res.ok ? res.json() : Promise.reject(res))
+            )
+            await Promise.all(promises)
+            // Update local state
             setRoles(roles.map(role =>
                 selectedRoles.includes(role.id) ? { ...role, status: newStatus } : role
             ))
@@ -229,6 +311,7 @@ export function Roles() {
                 closeModal={closeModal}
                 handleSubmit={handleSubmit}
                 handlePermissionsChange={handlePermissionsChange}
+                sectors={sectors}
             />
             <DeleteModal
                 deleteModalOpen={deleteModalOpen}
