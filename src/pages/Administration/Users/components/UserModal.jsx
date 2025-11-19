@@ -17,6 +17,10 @@ export function UserModal({ modalOpen, modalMode, formData, setFormData, handleF
                             <p><strong>Sector:</strong> {formData.sector}</p>
                             <p><strong>Role:</strong> {formData.role}</p>
                         </div>
+                    ) : loading ? (
+                        <div className="flex justify-center items-center p-4">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                        </div>
                     ) : (
                         <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
                             <input
@@ -51,17 +55,17 @@ export function UserModal({ modalOpen, modalMode, formData, setFormData, handleF
                                 disabled={loading}
                             >
                                 <option value="">Select Sector</option>
-                                {sectors.map(s => <option key={s} value={s}>{s}</option>)}
+                                {sectors.map((s, index) => <option key={index} value={s}>{s}</option>)}
                             </select>
                             <select
                                 name="role"
                                 value={formData.role}
                                 onChange={handleFormChange}
                                 className="w-full p-3 border border-gray-300 rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 custom-select"
-                                disabled={loading}
+                                disabled={loading || !formData.sector}
                             >
                                 <option value="">Select Role</option>
-                                {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                                {roles.map((r, index) => <option key={index} value={r}>{r}</option>)}
                             </select>
                             <div className="flex justify-end mt-4">
                                 <button
