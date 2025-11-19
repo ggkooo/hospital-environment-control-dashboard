@@ -14,6 +14,7 @@ import {ReportsManager} from "./pages/Administration/ReportsManager/index.jsx";
 import {Users} from "./pages/Administration/Users/index.jsx";
 import {Sectors} from "./pages/Administration/Sectors/index.jsx";
 import {Roles} from "./pages/Administration/Roles/index.jsx";
+import {ResetPassword} from "./pages/ResetPassword/index.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -34,6 +35,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path='reports-manager' element={<ReportsManager/>}/>
                   <Route path='roles' element={<Roles/>}/>
               </Route>
+              <Route path='/reset-password' element={<ResetPassword/>}/>
           </Routes>
       </BrowserRouter>
   </StrictMode>,

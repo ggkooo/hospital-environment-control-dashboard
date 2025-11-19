@@ -1,4 +1,4 @@
-import { FiEdit, FiTrash, FiKey, FiUserCheck, FiUserX, FiMail } from 'react-icons/fi'
+import { FiEdit, FiTrash, FiKey, FiUserCheck, FiMail, FiUserX } from 'react-icons/fi'
 
 export function Filters({ searchTerm, setSearchTerm, sectorFilter, setSectorFilter, roleFilter, setRoleFilter, sectors, roles, openModal }) {
     return (
@@ -16,7 +16,7 @@ export function Filters({ searchTerm, setSearchTerm, sectorFilter, setSectorFilt
                 className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 custom-select"
             >
                 <option value="">All Sectors</option>
-                {sectors.map(s => <option key={s} value={s}>{s}</option>)}
+                {sectors.map((s, index) => <option key={index} value={s}>{s}</option>)}
             </select>
             <select
                 value={roleFilter}
@@ -24,7 +24,7 @@ export function Filters({ searchTerm, setSearchTerm, sectorFilter, setSectorFilt
                 className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 custom-select"
             >
                 <option value="">All Roles</option>
-                {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                {roles.map((r, index) => <option key={index} value={r}>{r}</option>)}
             </select>
             <button
                 onClick={() => openModal('add')}
@@ -36,7 +36,12 @@ export function Filters({ searchTerm, setSearchTerm, sectorFilter, setSectorFilt
     )
 }
 
-export function Actions({ selectedUsers, users, openModal, setUsersToDelete, setDeleteModalOpen, handleResetPassword, handleToggleActive, setUsersToNotify, setEmailModalOpen }) {
+export function Actions({ selectedUsers, users, openModal, setUsersToDelete, setDeleteModalOpen, handleResetPassword, handleToggleActive, setUsersToNotify, setEmailModalOpen, resetLoading }) {
+    const allActive = selectedUsers.every(id => users.find(u => u.id === id)?.active)
+    const allInactive = selectedUsers.every(id => !users.find(u => u.id === id)?.active)
+    const buttonText = allActive ? 'Deactivate' : allInactive ? 'Activate' : 'Toggle Active'
+    const buttonIcon = allActive ? <FiUserX /> : <FiUserCheck />
+
     return (
         <div className="flex gap-4 mt-4">
             <button
@@ -57,27 +62,20 @@ export function Actions({ selectedUsers, users, openModal, setUsersToDelete, set
             </button>
             <button
                 onClick={() => selectedUsers.length === 1 && handleResetPassword(selectedUsers[0])}
-                disabled={selectedUsers.length !== 1}
+                disabled={selectedUsers.length !== 1 || resetLoading}
                 className="px-3 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
+                {resetLoading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-700"></div>}
                 <FiKey />
-                Reset
+                {resetLoading ? 'Sending...' : 'Reset'}
             </button>
             <button
-                onClick={() => selectedUsers.length > 0 && handleToggleActive(selectedUsers, true)}
+                onClick={() => selectedUsers.length > 0 && handleToggleActive(selectedUsers)}
                 disabled={selectedUsers.length === 0}
                 className="px-3 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                <FiUserCheck />
-                Activate
-            </button>
-            <button
-                onClick={() => selectedUsers.length > 0 && handleToggleActive(selectedUsers, false)}
-                disabled={selectedUsers.length === 0}
-                className="px-3 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                <FiUserX />
-                Deactivate
+                {buttonIcon}
+                {buttonText}
             </button>
             <button
                 onClick={() => { setUsersToNotify(selectedUsers); setEmailModalOpen(true); }}

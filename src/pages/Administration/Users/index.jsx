@@ -36,6 +36,16 @@ export function Users() {
     const [subject, setSubject] = useState('')
     const [body, setBody] = useState('')
     const [attachments, setAttachments] = useState([])
+    const [sectors, setSectors] = useState([])
+    const [roles, setRoles] = useState([])
+    const [modalRoles, setModalRoles] = useState([])
+    const [sectorRoles, setSectorRoles] = useState({})
+    const [allRoles, setAllRoles] = useState([])
+    const [sectorsLoaded, setSectorsLoaded] = useState(false)
+    const [resetSuccess, setResetSuccess] = useState(false)
+    const [resetEmail, setResetEmail] = useState('')
+    const [resetLoading, setResetLoading] = useState(false)
+    const [emailSuccess, setEmailSuccess] = useState(false)
 
     const fetchUsers = async () => {
         setLoadingUsers(true)
@@ -49,9 +59,9 @@ export function Users() {
             const data = await response.json()
             setUsers(data.map(u => ({
                 ...u,
-                createdAt: new Date(u.createdAt),
-                updatedAt: new Date(u.updatedAt),
-                lastLogin: new Date(u.lastLogin)
+                createdAt: new Date(u.created_at),
+                updatedAt: new Date(u.updated_at),
+                lastLogin: u.last_login ? new Date(u.last_login) : null
             })))
         } catch (err) {
             setError('Error fetching users')
@@ -61,8 +71,36 @@ export function Users() {
         }
     }
 
+    const fetchRoles = async () => {
+        try {
+            const response = await fetch('/api/roles', {
+                headers: {
+                    'X-API-KEY': API_KEY
+                }
+            })
+            if (!response.ok) throw new Error('Failed to fetch roles')
+            const data = await response.json()
+            setRoles(data.map(r => r.name))
+            const sectorsSet = new Set(data.map(r => r.sector))
+            setSectors([...sectorsSet])
+            const sectorRolesMap = {}
+            data.forEach(r => {
+                if (!sectorRolesMap[r.sector]) sectorRolesMap[r.sector] = []
+                sectorRolesMap[r.sector].push(r.name)
+            })
+            setSectorRoles(sectorRolesMap)
+            const all = data.map(r => r.name)
+            setAllRoles(all)
+            setModalRoles(all)
+            setSectorsLoaded(true)
+        } catch (err) {
+            console.error('Error fetching roles:', err)
+        }
+    }
+
     useEffect(() => {
         fetchUsers()
+        fetchRoles()
     }, [])
 
     const getRoleColumnColor = (role) => {
@@ -91,12 +129,10 @@ export function Users() {
     }
 
     const formatDate = (date) => {
+        if (!date || isNaN(date.getTime())) return 'N/A'
         const options = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'America/Sao_Paulo' };
         return date.toLocaleString('en-GB', options).replace(/(\d{1,2}) (\w{3}) (\d{4}), (\d{1,2}:\d{2}:\d{2})/, '$1 $2, $3 $4');
     }
-
-    const sectors = ['Emergency', 'Surgery', 'Pediatrics', 'Cardiology', 'Radiology']
-    const roles = ['Admin', 'Doctor', 'Nurse', 'Receptionist', 'Technician']
 
     const filteredUsers = users.filter(user =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -142,7 +178,12 @@ export function Users() {
     }
 
     const handleFormChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value })
+        const { name, value } = e.target
+        if (name === 'sector') {
+            setFormData({ ...formData, sector: value, role: '' })
+        } else {
+            setFormData({ ...formData, [name]: value })
+        }
     }
 
     const handlePhoneChange = (value) => {
@@ -227,20 +268,39 @@ export function Users() {
 
     const handleResetPassword = async (userId) => {
         const user = users.find(u => u.id === userId)
-        alert(`Password reset for ${user.name}. A reset link has been sent to ${user.email}.`)
+        try {
+            setResetLoading(true)
+            const response = await fetch('/api/password/reset-link', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-KEY': API_KEY
+                },
+                body: JSON.stringify({ email: user.email })
+            })
+            if (!response.ok) throw new Error('Failed to send reset link')
+            setResetEmail(user.email)
+            setResetSuccess(true)
+        } catch (error) {
+            alert(`Error: ${error.message}`)
+        } finally {
+            setResetLoading(false)
+        }
     }
 
-    const handleToggleActive = async (userIds, active) => {
+    const handleToggleActive = async (userIds) => {
         setLoading(true)
         try {
             for (const id of userIds) {
+                const user = users.find(u => u.id === id)
+                const newActive = !user.active
                 const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-API-KEY': API_KEY
                     },
-                    body: JSON.stringify({ active })
+                    body: JSON.stringify({ active: newActive })
                 })
                 if (!response.ok) throw new Error(`Failed to update user ${id}`)
             }
@@ -256,17 +316,20 @@ export function Users() {
         setLoading(true)
         try {
             const formDataToSend = new FormData()
-            formDataToSend.append('to', JSON.stringify(usersToNotify.map(id => users.find(u => u.id === id).email)))
+            usersToNotify.map(id => users.find(u => u.id === id).email).forEach(email => formDataToSend.append('to[]', email))
             formDataToSend.append('subject', subject)
             formDataToSend.append('body', body)
-            attachments.forEach(file => formDataToSend.append('attachments', file))
-            const response = await fetch(`${API_BASE_URL}/api/send-email`, {
+            attachments.forEach(file => formDataToSend.append('attachments[]', file))
+            const response = await fetch('/api/send-email', {
                 method: 'POST',
-                headers: { 'X-API-KEY': API_KEY },
+                headers: {
+                    'Accept': 'application/json',
+                    'X-API-KEY': API_KEY
+                },
                 body: formDataToSend
             })
             if (!response.ok) throw new Error('Failed to send email')
-            alert('Email sent successfully')
+            setEmailSuccess(true)
         } catch (error) {
             setError(error.message)
         } finally {
@@ -294,6 +357,15 @@ export function Users() {
     const toggleUserDetails = (id) => {
         setExpandedUserId(prev => prev === id ? null : id)
     }
+
+    useEffect(() => {
+        setRoles(sectorFilter ? sectorRoles[sectorFilter] || [] : allRoles)
+    }, [sectorFilter, sectorRoles, allRoles])
+
+    useEffect(() => {
+        if (!sectorsLoaded) return
+        setModalRoles(formData.sector ? sectorRoles[formData.sector] || [] : allRoles)
+    }, [formData.sector, sectorRoles, allRoles, sectorsLoaded])
 
     return (
         <div className='flex flex-row h-screen'>
@@ -327,6 +399,7 @@ export function Users() {
                             handleToggleActive={handleToggleActive}
                             setUsersToNotify={setUsersToNotify}
                             setEmailModalOpen={setEmailModalOpen}
+                            resetLoading={resetLoading}
                         />
                         <UserTable
                             paginatedUsers={paginatedUsers}
@@ -356,7 +429,7 @@ export function Users() {
                     handleFormChange={handleFormChange}
                     handlePhoneChange={handlePhoneChange}
                     sectors={sectors}
-                    roles={roles}
+                    roles={modalRoles}
                     loading={loading}
                     error={error}
                     closeModal={closeModal}
@@ -387,6 +460,38 @@ export function Users() {
                     error={error}
                     sendEmail={sendEmail}
                 />
+                {resetSuccess && (
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                            <h3 className="text-lg font-semibold mb-4">Success</h3>
+                            <p>Password reset link sent to {resetEmail}</p>
+                            <div className="flex justify-end mt-4">
+                                <button
+                                    onClick={() => setResetSuccess(false)}
+                                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                >
+                                    OK
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {emailSuccess && (
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                            <h3 className="text-lg font-semibold mb-4">Success</h3>
+                            <p>Email sent successfully</p>
+                            <div className="flex justify-end mt-4">
+                                <button
+                                    onClick={() => setEmailSuccess(false)}
+                                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                >
+                                    OK
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )
