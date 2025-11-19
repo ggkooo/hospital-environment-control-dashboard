@@ -25,7 +25,7 @@ export function Roles() {
     const [rolesToDelete, setRolesToDelete] = useState([])
     const [expandedRoleId, setExpandedRoleId] = useState(null)
     const [sectors, setSectors] = useState([])
-    const [loadingRoles] = useState(false)
+    const [loadingRoles, setLoadingRoles] = useState(true)
 
     const availablePermissions = [
         { path: '/', label: 'Home' },
@@ -55,10 +55,14 @@ export function Roles() {
                 }
                 return response.json();
             })
-            .then(data => setRoles(data))
+            .then(data => {
+                setRoles(data);
+                setLoadingRoles(false);
+            })
             .catch(error => {
                 console.error('Error fetching roles:', error);
                 setRoles([]); // Ensure roles is an array
+                setLoadingRoles(false);
             });
     }, [])
 
