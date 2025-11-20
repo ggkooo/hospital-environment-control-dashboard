@@ -4,7 +4,7 @@ import { Loading } from '../../components/Loading/index.jsx'
 import logo from '../../assets/logo.png'
 import { MdEmail, MdLock } from 'react-icons/md'
 
-const API_BASE_URL = 'http://localhost:8000'
+const API_BASE_URL = 'https://api.giordanoberwig.xyz'
 const API_KEY = import.meta.env.VITE_API_KEY
 
 export function Login() {
