@@ -11,6 +11,20 @@ import {
 import {Link} from "react-router";
 
 export function SidebarAdministrationMenu({ adminOpen, setAdminOpen }) {
+    const permissions = JSON.parse(localStorage.getItem('permissions')) || []
+
+    const adminLinks = [
+        { to: "/administration/sectors", icon: <IoBusinessOutline />, label: "Sectors" },
+        { to: "/administration/roles", icon: <IoPersonOutline />, label: "Roles" },
+        { to: "/administration/users", icon: <IoPeopleOutline />, label: "Users" },
+        { to: "/administration/access-log", icon: <IoDocumentTextOutline />, label: "Access Log" },
+        { to: "/administration/reports-manager", icon: <IoStatsChartOutline />, label: "Reports Manager" },
+    ]
+
+    const allowedLinks = adminLinks.filter(link => permissions.includes(link.to))
+
+    if (allowedLinks.length === 0) return null
+
     return (
         <div className='mt-1'>
             <button
@@ -27,11 +41,18 @@ export function SidebarAdministrationMenu({ adminOpen, setAdminOpen }) {
 
             {adminOpen && (
                 <div className='mt-2 ml-4 flex flex-col gap-1'>
-                    <Link className='p-2 hover:bg-hover-primary rounded-md flex items-center gap-2' to="/administration/sectors"><IoBusinessOutline /> Sectors</Link>
-                    <Link className='p-2 hover:bg-hover-primary rounded-md flex items-center gap-2' to="/administration/roles"><IoPersonOutline /> Roles</Link>
-                    <Link className='p-2 hover:bg-hover-primary rounded-md flex items-center gap-2' to="/administration/users"><IoPeopleOutline /> Users</Link>
-                    <Link className='p-2 hover:bg-hover-primary rounded-md flex items-center gap-2' to="/administration/access-log"><IoDocumentTextOutline /> Access Log</Link>
-                    <Link className='p-2 hover:bg-hover-primary rounded-md flex items-center gap-2' to="/administration/reports-manager"><IoStatsChartOutline /> Reports Manager</Link>
+                    {adminLinks.map(link => {
+                        const permitted = permissions.includes(link.to)
+                        return permitted ? (
+                            <Link key={link.to} className='p-2 hover:bg-hover-primary rounded-md flex items-center gap-2' to={link.to}>
+                                {link.icon} {link.label}
+                            </Link>
+                        ) : (
+                            <span key={link.to} className='p-2 rounded-md flex items-center gap-2 opacity-50 cursor-not-allowed'>
+                                {link.icon} {link.label}
+                            </span>
+                        )
+                    })}
                 </div>
             )}
         </div>
