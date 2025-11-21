@@ -9,10 +9,10 @@ export function DataInsights({ data, sensorType, unit }) {
         setVisibleRows([]);
 
         const timeouts = [];
-        for (let i = 0; i < 5; i++) { // 5 cards na linha principal
+        for (let i = 0; i < 5; i++) {
             const timeout = setTimeout(() => {
                 setVisibleRows(prev => [...prev, i]);
-            }, i * 100 + 400); // Start after charts load
+            }, i * 100 + 400);
             timeouts.push(timeout);
         }
 
@@ -55,7 +55,6 @@ export function DataInsights({ data, sensorType, unit }) {
     const minValue = Math.min(...sortedData.map(d => d.value));
     const maxValue = Math.max(...sortedData.map(d => d.value));
 
-    // Calculate trend (comparing first half vs second half)
     const halfPoint = Math.floor(sortedData.length / 2);
     const firstHalf = sortedData.slice(0, halfPoint);
     const secondHalf = sortedData.slice(halfPoint);
@@ -63,7 +62,6 @@ export function DataInsights({ data, sensorType, unit }) {
     const secondHalfAvg = secondHalf.reduce((sum, d) => sum + d.value, 0) / secondHalf.length;
     const trendPercentage = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
 
-    // Get status based on sensor type
     const getStatus = (value, type) => {
         const ranges = {
             temperature: { good: [20, 25], warning: [18, 28], critical: [15, 30] },
@@ -96,8 +94,6 @@ export function DataInsights({ data, sensorType, unit }) {
     const getTrendColor = () => {
         if (Math.abs(trendPercentage) < 1) return 'text-gray-600';
 
-        // For temperature, humidity, pressure: moderate increase might be bad
-        // For noise, eco2, tvoc: any increase is typically bad
         if (['noise', 'eco2', 'tvoc'].includes(sensorType)) {
             return trendPercentage > 0 ? 'text-red-600' : 'text-green-600';
         } else {
@@ -105,7 +101,6 @@ export function DataInsights({ data, sensorType, unit }) {
         }
     };
 
-    // Tooltips explicativos para cada métrica
     const getHelpTooltip = (metric) => {
         const tooltips = {
             'Current Status': 'Classification of current value based on ideal ranges for hospital environments. Green = Optimal, Yellow = Acceptable, Red = Alert.',
