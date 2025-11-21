@@ -1,7 +1,7 @@
 export async function logAction(action, page) {
     const lastLog = localStorage.getItem('lastLog');
     const now = Date.now();
-    if (lastLog && now - parseInt(lastLog) < 2000) return; // Skip if logged less than 2 seconds ago
+    if (lastLog && now - parseInt(lastLog) < 2000) return;
     localStorage.setItem('lastLog', now.toString());
 
     const userObj = JSON.parse(localStorage.getItem('user') || '{}');
@@ -13,7 +13,6 @@ export async function logAction(action, page) {
         return;
     }
 
-    // Get IP address
     let ip = '';
     try {
         const ipResponse = await fetch('https://api.ipify.org?format=json');
@@ -21,6 +20,16 @@ export async function logAction(action, page) {
         ip = ipData.ip;
     } catch (err) {
         console.warn('Failed to fetch IP:', err);
+    }
+
+    let city = '';
+    try {
+        const geoResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+        const geoData = await geoResponse.json();
+        city = geoData.address?.city || geoData.address?.town || geoData.address?.village || 'Unknown';
+    } catch (err) {
+        console.warn('Failed to fetch city:', err);
+        city = 'Unknown';
     }
 
     const data = {
@@ -31,8 +40,8 @@ export async function logAction(action, page) {
         page,
         ip,
         user_agent: navigator.userAgent,
-        city: 'São Paulo', // Hardcoded as per example
-        location: 'Hospital Central', // Hardcoded as per example
+        city: city,
+        location: '-',
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude)
     };
