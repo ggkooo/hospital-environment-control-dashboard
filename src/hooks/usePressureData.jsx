@@ -10,9 +10,7 @@ export function usePressureData() {
     const lastDataRef = useRef([])
 
     function validateConsecutivePressureData(data) {
-        // Sempre gerar 60 pontos baseados no tempo atual - 1 minuto
         const now = new Date();
-        // Subtrai 1 minuto do tempo atual para evitar inconsistência do ESP32
         now.setMinutes(now.getMinutes() - 1);
 
         const expectedTimestamps = Array.from({ length: 60 }, (_, i) => {
@@ -70,8 +68,6 @@ export function usePressureData() {
                 setLoading(false)
                 return
             }
-            // Convert timestamps to Date objects and value to number
-            // Adaptando para o formato da API: avg_value, min_value, max_value
             const parsedData = pressureArray.map(d => ({
                 ...d,
                 timestamp: new Date(d.minute_timestamp || d.timestamp),
@@ -79,7 +75,6 @@ export function usePressureData() {
                 min: Number(d.min_value ?? d.min),
                 max: Number(d.max_value ?? d.max)
             }))
-            // Validação de leituras consecutivas
             const validatedData = validateConsecutivePressureData(parsedData);
             setPressureData(validatedData);
             lastDataRef.current = validatedData
