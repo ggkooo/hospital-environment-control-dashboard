@@ -10,9 +10,7 @@ export function useTVOCData() {
     const lastDataRef = useRef([])
 
     function validateConsecutiveTVOCData(data) {
-        // Sempre gerar 60 pontos baseados no tempo atual - 1 minuto
         const now = new Date();
-        // Subtrai 1 minuto do tempo atual para evitar inconsistência do ESP32
         now.setMinutes(now.getMinutes() - 1);
 
         const expectedTimestamps = Array.from({ length: 60 }, (_, i) => {
@@ -67,13 +65,10 @@ export function useTVOCData() {
                 }
 
                 const json = await response.json();
-                console.log('API Response received:', json);
 
                 const tvocArray = json?.data || [];
-                console.log('TVOC array length:', tvocArray.length);
 
                 if (!Array.isArray(tvocArray) || tvocArray.length === 0) {
-                    console.log('No real TVOC data available');
                     const validatedData = validateConsecutiveTVOCData([]);
                     setTvocData(validatedData);
                     lastDataRef.current = validatedData;
