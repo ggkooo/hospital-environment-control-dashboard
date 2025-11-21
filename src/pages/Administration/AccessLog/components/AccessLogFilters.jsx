@@ -15,7 +15,6 @@ export function AccessLogFilters({
     setPersonFilter,
     logs
 }) {
-    // Extract unique values for selects
     const uniquePages = [...new Set(logs.map(log => log.page))]
     const uniqueRoles = [...new Set(logs.map(log => log.role))]
     const uniquePersons = [...new Set(logs.map(log => log.user))]
