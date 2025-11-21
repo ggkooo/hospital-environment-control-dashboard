@@ -1,15 +1,20 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useLocation } from 'react-router'
 
 export function ProtectedRoute({ children }) {
     const navigate = useNavigate()
+    const location = useLocation()
     const token = localStorage.getItem('token')
+    const permissions = JSON.parse(localStorage.getItem('permissions')) || []
 
     useEffect(() => {
         if (!token) {
             navigate('/login')
+        } else if (location.pathname !== '/' && !permissions.includes(location.pathname)) {
+            // If no permission, redirect to home
+            navigate('/')
         }
-    }, [token, navigate])
+    }, [token, permissions, location.pathname, navigate])
 
-    return token ? children : null
+    return token && (location.pathname === '/' || permissions.includes(location.pathname)) ? children : null
 }
