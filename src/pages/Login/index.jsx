@@ -47,6 +47,19 @@ export function Login() {
             localStorage.setItem('token', data.token)
             if (data.user) {
                 localStorage.setItem('user', JSON.stringify(data.user))
+                // Fetch roles to get permissions
+                const rolesResponse = await fetch(`${API_BASE_URL}/api/roles`, {
+                    headers: {
+                        'X-API-KEY': API_KEY
+                    }
+                })
+                const roles = await rolesResponse.json()
+                const userRole = roles.find(r => r.name === data.user.role)
+                if (userRole) {
+                    localStorage.setItem('permissions', JSON.stringify(userRole.permissions))
+                } else {
+                    localStorage.setItem('permissions', JSON.stringify(['/'])) // default to home
+                }
             }
             navigate('/')
         } catch (err) {
