@@ -75,7 +75,7 @@ export function Users() {
 
     const fetchRoles = async () => {
         try {
-            const response = await fetch('/api/roles', {
+            const response = await fetch(`${API_BASE_URL}/api/roles`, {
                 headers: {
                     'X-API-KEY': API_KEY
                 }
@@ -272,7 +272,7 @@ export function Users() {
         const user = users.find(u => u.id === userId)
         try {
             setResetLoading(true)
-            const response = await fetch('/api/password/reset-link', {
+            const response = await fetch(`${API_BASE_URL}/api/password/reset-link`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -322,13 +322,18 @@ export function Users() {
             formDataToSend.append('subject', subject)
             formDataToSend.append('body', body)
             attachments.forEach(file => formDataToSend.append('attachments[]', file))
-            const response = await fetch('/api/send-email', {
+            const response = await fetch(`${API_BASE_URL}/api/send-email`, {
                 method: 'POST',
                 headers: {
-                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                     'X-API-KEY': API_KEY
                 },
-                body: formDataToSend
+                body: JSON.stringify({
+                    to: usersToNotify.map(u => u.email),
+                    subject,
+                    body,
+                    attachments
+                })
             })
             if (!response.ok) throw new Error('Failed to send email')
             setEmailSuccess(true)

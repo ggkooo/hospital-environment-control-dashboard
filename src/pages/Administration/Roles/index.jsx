@@ -8,6 +8,8 @@ import { RoleModal } from "./components/RoleModal.jsx"
 import { DeleteModal } from "./components/DeleteModal.jsx"
 import { logAction } from "../../../utils/logAction.js"
 
+const API_BASE_URL = 'https://api.giordanoberwig.xyz';
+
 export function Roles() {
     const [roles, setRoles] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
@@ -44,7 +46,7 @@ export function Roles() {
     ]
 
     useEffect(() => {
-        fetch('/api/roles', {
+        fetch(`${API_BASE_URL}/api/roles`, {
             headers: {
                 'X-API-KEY': import.meta.env.VITE_API_KEY
             }
@@ -67,7 +69,7 @@ export function Roles() {
     }, [])
 
     useEffect(() => {
-        fetch('/api/sectors', {
+        fetch(`${API_BASE_URL}/api/sectors`, {
             headers: {
                 'X-API-KEY': import.meta.env.VITE_API_KEY
             }
@@ -173,7 +175,7 @@ export function Roles() {
                 roleData.id = selectedRole.id;
             }
 
-            const url = modalMode === 'edit' ? `/api/roles/${selectedRole.id}` : '/api/roles';
+            const url = modalMode === 'edit' ? `${API_BASE_URL}/api/roles/${selectedRole.id}` : `${API_BASE_URL}/api/roles`;
             const method = modalMode === 'add' ? 'POST' : 'PUT';
 
             const response = await fetch(url, {
@@ -210,7 +212,7 @@ export function Roles() {
     const handleDelete = async () => {
         try {
             const promises = rolesToDelete.map(id =>
-                fetch(`/api/roles/${id}`, {
+                fetch(`${API_BASE_URL}/api/roles/${id}`, {
                     method: 'DELETE',
                     headers: {
                         'X-API-KEY': import.meta.env.VITE_API_KEY
@@ -237,7 +239,7 @@ export function Roles() {
         const newStatus = allActive ? 'inactive' : 'active'
         try {
             const promises = selectedRoleObjects.map(role =>
-                fetch(`/api/roles/${role.id}`, {
+                fetch(`${API_BASE_URL}/api/roles/${role.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
