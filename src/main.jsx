@@ -18,6 +18,7 @@ import {ResetPassword} from "./pages/ResetPassword/index.jsx";
 import {Login} from "./pages/Login/index.jsx";
 import {Logout} from "./pages/Logout/index.jsx";
 import {ProtectedRoute} from "./components/ProtectedRoute.jsx";
+import {AccessLog} from "./pages/Administration/AccessLog/index.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -37,7 +38,7 @@ createRoot(document.getElementById('root')).render(
               <Route path='/administration'>
                   <Route path='sectors' element={<ProtectedRoute><Sectors/></ProtectedRoute>}/>
                   <Route path='users' element={<ProtectedRoute><Users/></ProtectedRoute>}/>
-                  <Route path='access-log' element={<ProtectedRoute><App/></ProtectedRoute>}/>
+                  <Route path='access-log' element={<ProtectedRoute><AccessLog/></ProtectedRoute>}/>
                   <Route path='reports-manager' element={<ProtectedRoute><ReportsManager/></ProtectedRoute>}/>
                   <Route path='roles' element={<ProtectedRoute><Roles/></ProtectedRoute>}/>
               </Route>
