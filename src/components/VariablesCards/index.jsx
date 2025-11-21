@@ -35,8 +35,6 @@ const PASTEL_COLOR_MAP = {
     tvoc: 'text-gray-300'
 };
 
-// Replace COLOR_MAP and GRADIENT_MAP with pastel versions
-
 function getTimeDisplay(lastUpdated) {
     if (!lastUpdated) return 'Now'
 
