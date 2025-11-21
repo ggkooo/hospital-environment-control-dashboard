@@ -9,12 +9,21 @@ import {FetchDateTime} from "../../components/FetchDateTime/index.jsx";
 import { LocationSection } from '../../components/LocationSection/index.jsx'
 import { useLiveSensorData } from '../../hooks/useLiveSensorData.jsx'
 import { getInitialData } from '../../utils/sensorConstants'
+import { logAction } from '../../utils/logAction.js'
 
 export function Home() {
     const { liveData, loading, lastUpdated } = useLiveSensorData()
     const initialData = getInitialData()
     const [showLoading, setShowLoading] = useState(true);
     const loadingStart = useRef(null);
+    const loggedRef = useRef(false);
+
+    useEffect(() => {
+        if (loggedRef.current) return
+        loggedRef.current = true
+
+        logAction('Page Access', 'Home');
+    }, []);
 
     useEffect(() => {
         if (loading) {

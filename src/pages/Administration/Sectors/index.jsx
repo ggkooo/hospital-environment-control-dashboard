@@ -6,6 +6,7 @@ import { Filters, Actions } from "./components/Filters.jsx"
 import { SectorTable } from "./components/SectorTable.jsx"
 import { SectorModal } from "./components/SectorModal.jsx"
 import { DeleteModal } from "./components/DeleteModal.jsx"
+import { logAction } from "../../../utils/logAction.js"
 
 export function Sectors() {
     const [sectors, setSectors] = useState([])
@@ -46,6 +47,10 @@ export function Sectors() {
         }
         fetchSectors()
     }, [])
+
+    useEffect(() => {
+        logAction('Page Access', 'Administration/Sectors');
+    }, []);
 
     const filteredSectors = sectors.filter(sector =>
         sector.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

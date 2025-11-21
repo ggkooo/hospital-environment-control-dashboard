@@ -6,6 +6,7 @@ import { Filters, Actions } from "./components/Filters.jsx"
 import { RoleTable } from "./components/RoleTable.jsx"
 import { RoleModal } from "./components/RoleModal.jsx"
 import { DeleteModal } from "./components/DeleteModal.jsx"
+import { logAction } from "../../../utils/logAction.js"
 
 export function Roles() {
     const [roles, setRoles] = useState([])
@@ -85,6 +86,10 @@ export function Roles() {
                 setSectors([]); // Ensure sectors is an array
             });
     }, [])
+
+    useEffect(() => {
+        logAction('Page Access', 'Administration/Roles');
+    }, []);
 
     const filteredRoles = roles.filter(role =>
         role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

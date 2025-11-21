@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { TYPES, ICON_LABEL_MAP } from '../../../utils/sensorConstants'
 import { FaCalendarAlt, FaChevronDown, FaFileDownload, FaFilter, FaSpinner } from 'react-icons/fa'
 import { Sidebar } from "../../../components/Sidebar/index.jsx"
 import { Header } from "../../../components/Header/index.jsx"
 import { useReportData } from '../../../hooks/useReportData.jsx'
 import { generatePDFReport } from '../../../utils/pdfGenerator.js'
+import { logAction } from '../../../utils/logAction.js'
 
 export function ReportsManager() {
     const [startDate, setStartDate] = useState('')
@@ -19,6 +20,7 @@ export function ReportsManager() {
     const [isLanguageOpen, setIsLanguageOpen] = useState(false)
     const [availableDays, setAvailableDays] = useState([])
     const { fetchReportData, loading, fetchAvailableDays, suggestAlternativePeriods } = useReportData()
+    const loggedRef = useRef(false)
 
     const handleSuggestAlternatives = async () => {
         console.log('Searching for alternative date periods with available data...')
@@ -240,6 +242,13 @@ Por favor, selecione datas que já ocorreram.`
             }
         }
     }
+
+    useEffect(() => {
+        if (loggedRef.current) return
+        loggedRef.current = true
+
+        logAction('Page Access', 'Administration/Reports Manager');
+    }, []);
 
     return (
         <div className='flex flex-row h-screen'>

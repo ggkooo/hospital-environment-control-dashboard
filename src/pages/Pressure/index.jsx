@@ -6,11 +6,16 @@ import { PressureChart } from "./Chart.jsx";
 import { PressureStats } from "./PressureStats.jsx";
 import { DataInsights } from "../../components/DataInsights/index.jsx";
 import { usePressureData } from "../../hooks/usePressureData.jsx";
+import { logAction } from "../../utils/logAction.js";
 
 export function Pressure() {
     const { pressureData, loading, error } = usePressureData();
     const [showLoading, setShowLoading] = useState(true);
     const loadingStart = useRef(null);
+
+    useEffect(() => {
+        logAction('Page Access', 'Pressure');
+    }, []);
 
     useEffect(() => {
         if (loading) {

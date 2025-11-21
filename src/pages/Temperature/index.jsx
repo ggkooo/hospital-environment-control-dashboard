@@ -6,11 +6,20 @@ import { TemperatureStats } from "./TemperatureStats.jsx";
 import { DataInsights } from "../../components/DataInsights/index.jsx";
 import { useTemperatureData } from "../../hooks/useTemperatureData.jsx";
 import { useEffect, useRef, useState } from "react";
+import { logAction } from "../../utils/logAction.js";
 
 export function Temperature() {
     const { temperatureData, loading, error } = useTemperatureData();
     const [showLoading, setShowLoading] = useState(true);
     const loadingStart = useRef(null);
+    const loggedRef = useRef(false);
+
+    useEffect(() => {
+        if (loggedRef.current) return
+        loggedRef.current = true
+
+        logAction('Page Access', 'Temperature');
+    }, []);
 
     useEffect(() => {
         if (loading) {

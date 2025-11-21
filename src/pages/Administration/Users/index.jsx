@@ -1,12 +1,13 @@
 import { Sidebar } from "../../../components/Sidebar/index.jsx"
 import { Header } from "../../../components/Header/index.jsx"
 import { Loading } from "../../../components/Loading/index.jsx"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Filters, Actions } from "./components/Filters.jsx"
 import { UserTable } from "./components/UserTable.jsx"
 import { UserModal } from "./components/UserModal.jsx"
 import { DeleteModal } from "./components/DeleteModal.jsx"
 import { EmailModal } from "./components/EmailModal.jsx"
+import { logAction } from "../../../utils/logAction.js"
 
 const API_BASE_URL = 'https://api.giordanoberwig.xyz';
 const API_KEY = import.meta.env.VITE_API_KEY;
@@ -46,6 +47,7 @@ export function Users() {
     const [resetEmail, setResetEmail] = useState('')
     const [resetLoading, setResetLoading] = useState(false)
     const [emailSuccess, setEmailSuccess] = useState(false)
+    const loggedRef = useRef(false)
 
     const fetchUsers = async () => {
         setLoadingUsers(true)
@@ -366,6 +368,12 @@ export function Users() {
         if (!sectorsLoaded) return
         setModalRoles(formData.sector ? sectorRoles[formData.sector] || [] : allRoles)
     }, [formData.sector, sectorRoles, allRoles, sectorsLoaded])
+
+    useEffect(() => {
+        if (loggedRef.current) return
+        logAction('Page Access', 'Administration/Users');
+        loggedRef.current = true
+    }, []);
 
     return (
         <div className='flex flex-row h-screen'>
