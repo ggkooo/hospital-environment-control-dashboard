@@ -7,9 +7,8 @@ export function NoiseChart({ data }) {
     const [dimensions, setDimensions] = useState({ width: 800, height: 400 });
     const [visible, setVisible] = useState(false);
 
-    // Animation: fade-in when chart is mounted (faster)
     useEffect(() => {
-        const timer = setTimeout(() => setVisible(true), 300); // 300ms for faster fade-in
+        const timer = setTimeout(() => setVisible(true), 300);
         return () => clearTimeout(timer);
     }, []);
 
@@ -17,7 +16,6 @@ export function NoiseChart({ data }) {
         const TARGET_POINTS = 60;
         if (!originalData || originalData.length === 0) {
             const now = new Date();
-            // Subtrai 1 minuto do tempo atual para evitar inconsistência do ESP32
             now.setMinutes(now.getMinutes() - 1);
             return Array.from({ length: TARGET_POINTS }, (_, i) => ({
                 timestamp: new Date(now.getTime() - ((TARGET_POINTS - 1 - i) * 60 * 1000)),
