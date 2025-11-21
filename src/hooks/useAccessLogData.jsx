@@ -8,7 +8,7 @@ export function useAccessLogData() {
     useEffect(() => {
         const fetchLogs = async () => {
             try {
-                const response = await fetch('http://localhost:8000/api/access-logs', {
+                const response = await fetch('https://api.giordanoberwig.xyz/api/access-logs', {
                     headers: {
                         'X-API-KEY': import.meta.env.VITE_API_KEY
                     }
