@@ -17,7 +17,6 @@ export function Login() {
     useEffect(() => {
         const token = localStorage.getItem('token')
         if (token) {
-            // Optionally, you can verify the token here with an API call
             navigate('/')
         }
     }, [navigate])
@@ -43,11 +42,9 @@ export function Login() {
             if (data.error) {
                 throw new Error(data.error)
             }
-            // Store token and user if needed
             localStorage.setItem('token', data.token)
             if (data.user) {
                 localStorage.setItem('user', JSON.stringify(data.user))
-                // Fetch roles to get permissions
                 const rolesResponse = await fetch(`${API_BASE_URL}/api/roles`, {
                     headers: {
                         'X-API-KEY': API_KEY
@@ -58,7 +55,7 @@ export function Login() {
                 if (userRole) {
                     localStorage.setItem('permissions', JSON.stringify(userRole.permissions))
                 } else {
-                    localStorage.setItem('permissions', JSON.stringify(['/'])) // default to home
+                    localStorage.setItem('permissions', JSON.stringify(['/']))
                 }
             }
             navigate('/')

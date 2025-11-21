@@ -23,7 +23,7 @@ export function ECO2() {
             setShowLoading(true);
         } else {
             const elapsed = Date.now() - (loadingStart.current || Date.now());
-            const minTime = 400; // 0.4s delay
+            const minTime = 400;
             if (elapsed < minTime) {
                 const timeout = setTimeout(() => setShowLoading(false), minTime - elapsed);
                 return () => clearTimeout(timeout);

@@ -10,9 +10,7 @@ export function useHumidityData() {
     const lastDataRef = useRef([])
 
     function validateConsecutiveHumidityData(data) {
-        // Sempre gerar 60 pontos baseados no tempo atual - 1 minuto
         const now = new Date();
-        // Subtrai 1 minuto do tempo atual para evitar inconsistência do ESP32
         now.setMinutes(now.getMinutes() - 1);
 
         const expectedTimestamps = Array.from({ length: 60 }, (_, i) => {

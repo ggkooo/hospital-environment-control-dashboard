@@ -4,15 +4,13 @@ export function TVOCStats({ data }) {
     const [visibleCards, setVisibleCards] = useState([])
 
     useEffect(() => {
-        // Reset visibility when data changes
         setVisibleCards([])
 
-        // Animate cards with staggered delay
         const timeouts = []
         for (let i = 0; i < 4; i++) {
             const timeout = setTimeout(() => {
                 setVisibleCards(prev => [...prev, i])
-            }, i * 100 + 200) // Start after 200ms, then 100ms between each card
+            }, i * 100 + 200)
             timeouts.push(timeout)
         }
 

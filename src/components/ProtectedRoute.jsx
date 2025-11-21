@@ -11,7 +11,6 @@ export function ProtectedRoute({ children }) {
         if (!token) {
             navigate('/login')
         } else if (location.pathname !== '/' && !permissions.includes(location.pathname)) {
-            // If no permission, redirect to home
             navigate('/')
         }
     }, [token, permissions, location.pathname, navigate])

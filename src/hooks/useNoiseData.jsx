@@ -10,9 +10,7 @@ export function useNoiseData() {
     const lastDataRef = useRef([])
 
     function validateConsecutiveNoiseData(data) {
-        // Sempre gerar 60 pontos baseados no tempo atual - 1 minuto
         const now = new Date();
-        // Subtrai 1 minuto do tempo atual para evitar inconsistência do ESP32
         now.setMinutes(now.getMinutes() - 1);
 
         const expectedTimestamps = Array.from({ length: 60 }, (_, i) => {
@@ -64,7 +62,6 @@ export function useNoiseData() {
             const noiseArray = json?.data || []
 
             if (!Array.isArray(noiseArray) || noiseArray.length === 0) {
-                console.log('No real noise data available')
                 const validatedData = validateConsecutiveNoiseData([]);
                 setNoiseData(validatedData)
                 lastDataRef.current = validatedData
@@ -106,7 +103,6 @@ export function useNoiseData() {
     }
 
     useEffect(() => {
-        console.log('Initializing noise data hook')
         lastDataRef.current = []
 
         fetchNoiseData()
@@ -121,7 +117,6 @@ export function useNoiseData() {
     }, [])
 
     const refetch = () => {
-        console.log('Manual refetch triggered')
         fetchNoiseData()
     }
 

@@ -29,7 +29,6 @@ export function AccessLog() {
         logAction('Page Access', 'Administration/Access Log');
     }, []);
 
-    // Filtered and sorted logs
     const filteredLogs = useMemo(() => {
         let filtered = logs.filter(log => {
             const matchesSearch = !searchTerm ||
@@ -49,7 +48,6 @@ export function AccessLog() {
             return matchesSearch && matchesPage && matchesRole && matchesPerson && matchesStartDateTime && matchesEndDateTime
         })
 
-        // Sort
         filtered.sort((a, b) => {
             let aVal = a[sortBy]
             let bVal = b[sortBy]
@@ -67,11 +65,9 @@ export function AccessLog() {
         return filtered
     }, [logs, searchTerm, pageFilter, startDateTime, endDateTime, roleFilter, personFilter, sortBy, sortOrder])
 
-    // Paginated logs
     const totalPages = Math.ceil(filteredLogs.length / itemsPerPage)
     const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
-    // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1)
     }, [searchTerm, pageFilter, startDateTime, endDateTime, roleFilter, personFilter])
