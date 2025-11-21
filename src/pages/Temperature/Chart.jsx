@@ -7,9 +7,8 @@ export function TemperatureChart({ data }) {
     const [dimensions, setDimensions] = useState({ width: 800, height: 400 })
     const [visible, setVisible] = useState(false)
 
-    // Animation: fade-in when chart is mounted (faster)
     useEffect(() => {
-        const timer = setTimeout(() => setVisible(true), 300); // 300ms for faster fade-in
+        const timer = setTimeout(() => setVisible(true), 300);
         return () => clearTimeout(timer);
     }, []);
 
@@ -17,7 +16,6 @@ export function TemperatureChart({ data }) {
         const TARGET_POINTS = 60
         if (!originalData || originalData.length === 0) {
             const now = new Date();
-            // Subtrai 1 minuto do tempo atual para evitar inconsistência do ESP32
             now.setMinutes(now.getMinutes() - 1);
             return Array.from({ length: TARGET_POINTS }, (_, i) => ({
                 timestamp: new Date(now.getTime() - ((TARGET_POINTS - 1 - i) * 60 * 1000)),
@@ -39,9 +37,9 @@ export function TemperatureChart({ data }) {
                 const containerWidth = containerRef.current.offsetWidth
 
                 let containerHeight
-                if (containerWidth < 640) { // Mobile
+                if (containerWidth < 640) {
                     containerHeight = Math.max(180, containerWidth * 0.4)
-                } else if (containerWidth < 1024) { // Tablet
+                } else if (containerWidth < 1024) {
                     containerHeight = Math.max(200, containerWidth * 0.35)
                 } else {
                     containerHeight = Math.max(220, Math.min(280, containerWidth * 0.25))
@@ -73,12 +71,10 @@ export function TemperatureChart({ data }) {
 
     useEffect(() => {
         if (!data) {
-            console.log('TemperatureChart: No data provided')
             return
         }
 
         const paddedData = padDataTo60Points(data)
-        console.log('TemperatureChart: Rendering with padded data:', paddedData.length, 'points')
 
         const svg = d3.select(svgRef.current)
         svg.selectAll("*").remove()
@@ -104,12 +100,6 @@ export function TemperatureChart({ data }) {
             .domain(yDomain)
             .nice()
             .range([innerHeight, 0])
-
-        console.log('Scales created:', {
-            xDomain: xScale.domain(),
-            yDomain: yScale.domain(),
-            actualDataPoints: actualValues.length
-        })
 
         const g = svg.append('g')
             .attr('transform', `translate(${margin.left},${margin.top})`)
@@ -259,8 +249,6 @@ export function TemperatureChart({ data }) {
             .selectAll('path, line')
             .style('stroke', '#f1f5f9')
             .style('stroke-width', 0.5)
-
-        console.log('Chart rendered successfully')
 
     }, [data, dimensions])
 
