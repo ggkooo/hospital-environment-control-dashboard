@@ -10,9 +10,7 @@ export function useTemperatureData() {
     const lastDataRef = useRef([])
 
     function validateConsecutiveTemperatureData(data) {
-        // Sempre gerar 60 pontos baseados no tempo atual - 1 minuto
         const now = new Date();
-        // Subtrai 1 minuto do tempo atual para evitar inconsistência do ESP32
         now.setMinutes(now.getMinutes() - 1);
 
         const expectedTimestamps = Array.from({ length: 60 }, (_, i) => {
@@ -65,13 +63,10 @@ export function useTemperatureData() {
             }
 
             const json = await res.json()
-            console.log('API Response received:', json)
 
             const temperatureArray = json?.data || []
-            console.log('Temperature array length:', temperatureArray.length)
 
             if (!Array.isArray(temperatureArray) || temperatureArray.length === 0) {
-                console.log('No real temperature data available')
                 const validatedData = validateConsecutiveTemperatureData([]);
                 setTemperatureData(validatedData)
                 lastDataRef.current = validatedData
@@ -104,7 +99,6 @@ export function useTemperatureData() {
     }
 
     useEffect(() => {
-        console.log('Initializing temperature data hook')
         lastDataRef.current = []
 
         fetchTemperatureData()
@@ -119,7 +113,6 @@ export function useTemperatureData() {
     }, [])
 
     const refetch = () => {
-        console.log('Manual refetch triggered')
         fetchTemperatureData()
     }
 
