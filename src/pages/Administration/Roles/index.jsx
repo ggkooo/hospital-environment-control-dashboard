@@ -44,7 +44,6 @@ export function Roles() {
     ]
 
     useEffect(() => {
-        // Fetch roles from API
         fetch('/api/roles', {
             headers: {
                 'X-API-KEY': import.meta.env.VITE_API_KEY
@@ -62,13 +61,12 @@ export function Roles() {
             })
             .catch(error => {
                 console.error('Error fetching roles:', error);
-                setRoles([]); // Ensure roles is an array
+                setRoles([]);
                 setLoadingRoles(false);
             });
     }, [])
 
     useEffect(() => {
-        // Fetch sectors from API
         fetch('/api/sectors', {
             headers: {
                 'X-API-KEY': import.meta.env.VITE_API_KEY
@@ -83,7 +81,7 @@ export function Roles() {
             .then(data => setSectors(data))
             .catch(error => {
                 console.error('Error fetching sectors:', error);
-                setSectors([]); // Ensure sectors is an array
+                setSectors([]);
             });
     }, [])
 
@@ -168,11 +166,9 @@ export function Roles() {
         setLoading(true)
         setError('')
         try {
-            // Build the JSON for the role
             const roleData = {
                 ...formData
             }
-            // Remove id for add, or include for edit
             if (modalMode === 'edit') {
                 roleData.id = selectedRole.id;
             }
@@ -194,12 +190,10 @@ export function Roles() {
             }
 
             const result = await response.json();
-            console.log('API Response:', result);
 
-            // Update local state with the result or mock
             const newRole = result || roleData;
             if (modalMode === 'add') {
-                setRoles([...roles, { ...newRole, id: Date.now() }]); // Assume API returns id or use timestamp
+                setRoles([...roles, { ...newRole, id: Date.now() }]);
             } else {
                 setRoles(roles.map(role =>
                     role.id === selectedRole.id ? newRole : role
@@ -224,7 +218,6 @@ export function Roles() {
                 }).then(res => res.ok ? null : Promise.reject(res))
             )
             await Promise.all(promises)
-            // Update local state
             setRoles(roles.filter(role => !rolesToDelete.includes(role.id)))
             setDeleteModalOpen(false)
             setRolesToDelete([])
@@ -243,7 +236,6 @@ export function Roles() {
         const allActive = selectedRoleObjects.every(role => role.status === 'active')
         const newStatus = allActive ? 'inactive' : 'active'
         try {
-            // Send PUT for each selected role
             const promises = selectedRoleObjects.map(role =>
                 fetch(`/api/roles/${role.id}`, {
                     method: 'PUT',
@@ -255,7 +247,6 @@ export function Roles() {
                 }).then(res => res.ok ? res.json() : Promise.reject(res))
             )
             await Promise.all(promises)
-            // Update local state
             setRoles(roles.map(role =>
                 selectedRoles.includes(role.id) ? { ...role, status: newStatus } : role
             ))
