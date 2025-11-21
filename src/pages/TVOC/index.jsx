@@ -6,11 +6,16 @@ import { TVOCStats } from "./TVOCStats.jsx";
 import { DataInsights } from "../../components/DataInsights/index.jsx";
 import { useTVOCData } from "../../hooks/useTVOCData.jsx";
 import { Loading } from "../../components/Loading/index.jsx";
+import { logAction } from "../../utils/logAction.js";
 
 export function TVOC() {
     const { tvocData, loading, error } = useTVOCData();
     const [showLoading, setShowLoading] = useState(true);
     const loadingStart = useRef(null);
+
+    useEffect(() => {
+        logAction('Page Access', 'TVOC');
+    }, []);
 
     useEffect(() => {
         if (loading) {

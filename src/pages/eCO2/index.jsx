@@ -6,11 +6,16 @@ import { ECO2Stats } from "./eCO2Stats.jsx";
 import { DataInsights } from "../../components/DataInsights/index.jsx";
 import { useECO2Data } from "../../hooks/useECO2Data.jsx";
 import { Loading } from "../../components/Loading/index.jsx";
+import { logAction } from "../../utils/logAction.js";
 
 export function ECO2() {
     const { eco2Data, loading, error } = useECO2Data();
     const [showLoading, setShowLoading] = useState(true);
     const loadingStart = useRef(null);
+
+    useEffect(() => {
+        logAction('Page Access', 'eCO2');
+    }, []);
 
     useEffect(() => {
         if (loading) {

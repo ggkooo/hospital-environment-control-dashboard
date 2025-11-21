@@ -6,11 +6,16 @@ import { HumidityChart } from "./Chart.jsx";
 import { HumidityStats } from "./HumidityStats.jsx";
 import { DataInsights } from "../../components/DataInsights/index.jsx";
 import { useHumidityData } from "../../hooks/useHumidityData.jsx";
+import { logAction } from "../../utils/logAction.js";
 
 export function Humidity() {
     const { humidityData, loading, error } = useHumidityData();
     const [showLoading, setShowLoading] = useState(true);
     const loadingStart = useRef(null);
+
+    useEffect(() => {
+        logAction('Page Access', 'Humidity');
+    }, []);
 
     useEffect(() => {
         if (loading) {
