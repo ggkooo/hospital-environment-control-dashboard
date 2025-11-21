@@ -144,8 +144,6 @@ async function addCustomHeader(doc, logoInfo = null) {
             const logoX = 15
             const logoY = (headerHeight - pdfLogoHeight) / 2 + 2
 
-            console.log(`Main logo PDF dimensions: ${pdfLogoWidth}x${pdfLogoHeight} at position (${logoX}, ${logoY})`)
-
             doc.addImage(logoInfo.data, 'PNG', logoX, logoY, pdfLogoWidth, pdfLogoHeight, undefined, 'FAST')
         } catch (error) {
             console.warn('Failed to add main logo to PDF:', error)
@@ -571,7 +569,6 @@ async function createHistogram(values, sensorType, unit, selectedLanguage = 'en'
 export async function generatePDFReport(data, startDate, endDate, dataType, granularity = 'minute', selectedArea = 'pharmacy', selectedLanguage = 'en') {
     const doc = new jsPDF()
 
-    console.log('Loading logo with dimensions for PDF header...')
     const logoInfo = await loadLogoWithDimensions()
 
     const pageWidth = doc.internal.pageSize.getWidth()
@@ -817,5 +814,4 @@ export async function generatePDFReport(data, startDate, endDate, dataType, gran
     const fileName = `hospital_report_${selectedArea}_${startDate}_${endDate}_${selectedLanguage}.pdf`
     doc.save(fileName)
 
-    console.log(`PDF report generated successfully with custom header/footer: ${fileName}`)
 }
