@@ -68,7 +68,7 @@ export function ResetPassword() {
                 throw new Error(errorMessage)
             }
             setSuccess(true)
-            setTimeout(() => navigate('/'), 3000) // Redirect to home after 3 seconds
+            setTimeout(() => navigate('/'), 3000)
         } catch (err) {
             setError(err.message)
         } finally {
