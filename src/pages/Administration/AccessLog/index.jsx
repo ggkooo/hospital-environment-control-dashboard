@@ -1,17 +1,18 @@
 import { Sidebar } from "../../../components/Sidebar/index.jsx"
 import { Header } from "../../../components/Header/index.jsx"
 import { Loading } from "../../../components/Loading/index.jsx"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { useAccessLogData } from "../../../hooks/useAccessLogData.jsx"
 import { AccessLogFilters } from "./components/AccessLogFilters.jsx"
 import { AccessLogTable } from "./components/AccessLogTable.jsx"
+import { logAction } from "../../../utils/logAction.js"
 
 export function AccessLog() {
-    const { logs, loading } = useAccessLogData()
+    const { logs, loading, error } = useAccessLogData()
     const [searchTerm, setSearchTerm] = useState('')
     const [pageFilter, setPageFilter] = useState('')
-    const [dayFilter, setDayFilter] = useState('')
-    const [hourFilter, setHourFilter] = useState('')
+    const [startDateTime, setStartDateTime] = useState('')
+    const [endDateTime, setEndDateTime] = useState('')
     const [roleFilter, setRoleFilter] = useState('')
     const [personFilter, setPersonFilter] = useState('')
     const [sortBy, setSortBy] = useState('timestamp')
@@ -19,6 +20,14 @@ export function AccessLog() {
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 20
     const [expandedLogId, setExpandedLogId] = useState(null)
+    const loggedRef = useRef(false)
+
+    useEffect(() => {
+        if (loggedRef.current) return
+        loggedRef.current = true
+
+        logAction('Page Access', 'Administration/Access Log');
+    }, []);
 
     // Filtered and sorted logs
     const filteredLogs = useMemo(() => {
@@ -34,10 +43,10 @@ export function AccessLog() {
             const matchesPerson = !personFilter || log.user === personFilter
 
             const logDate = new Date(log.timestamp)
-            const matchesDay = !dayFilter || logDate.toDateString() === new Date(dayFilter).toDateString()
-            const matchesHour = !hourFilter || logDate.getHours().toString().padStart(2, '0') === hourFilter.split(':')[0]
+            const matchesStartDateTime = !startDateTime || logDate >= new Date(startDateTime)
+            const matchesEndDateTime = !endDateTime || logDate <= new Date(endDateTime)
 
-            return matchesSearch && matchesPage && matchesRole && matchesPerson && matchesDay && matchesHour
+            return matchesSearch && matchesPage && matchesRole && matchesPerson && matchesStartDateTime && matchesEndDateTime
         })
 
         // Sort
@@ -56,7 +65,7 @@ export function AccessLog() {
         })
 
         return filtered
-    }, [logs, searchTerm, pageFilter, dayFilter, hourFilter, roleFilter, personFilter, sortBy, sortOrder])
+    }, [logs, searchTerm, pageFilter, startDateTime, endDateTime, roleFilter, personFilter, sortBy, sortOrder])
 
     // Paginated logs
     const totalPages = Math.ceil(filteredLogs.length / itemsPerPage)
@@ -65,7 +74,7 @@ export function AccessLog() {
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1)
-    }, [searchTerm, pageFilter, dayFilter, hourFilter, roleFilter, personFilter])
+    }, [searchTerm, pageFilter, startDateTime, endDateTime, roleFilter, personFilter])
 
     const handleSort = (column) => {
         if (sortBy === column) {
@@ -95,6 +104,20 @@ export function AccessLog() {
         return <Loading />
     }
 
+    if (error) {
+        return (
+            <div className='flex flex-row h-screen'>
+                <Sidebar/>
+                <div className='w-full p-4 md:p-6 lg:p-8 relative overflow-auto'>
+                    <Header title='Access Log' description='Monitor user access activities and system interactions.' />
+                    <div className="bg-white rounded-lg shadow p-4">
+                        <p className="text-red-500">Error loading access logs: {error}</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className='flex flex-row h-screen'>
             <Sidebar/>
@@ -105,10 +128,10 @@ export function AccessLog() {
                     setSearchTerm={setSearchTerm}
                     pageFilter={pageFilter}
                     setPageFilter={setPageFilter}
-                    dayFilter={dayFilter}
-                    setDayFilter={setDayFilter}
-                    hourFilter={hourFilter}
-                    setHourFilter={setHourFilter}
+                    startDateTime={startDateTime}
+                    setStartDateTime={setStartDateTime}
+                    endDateTime={endDateTime}
+                    setEndDateTime={setEndDateTime}
                     roleFilter={roleFilter}
                     setRoleFilter={setRoleFilter}
                     personFilter={personFilter}

@@ -5,10 +5,10 @@ export function AccessLogFilters({
     setSearchTerm,
     pageFilter,
     setPageFilter,
-    dayFilter,
-    setDayFilter,
-    hourFilter,
-    setHourFilter,
+    startDateTime,
+    setStartDateTime,
+    endDateTime,
+    setEndDateTime,
     roleFilter,
     setRoleFilter,
     personFilter,
@@ -38,23 +38,17 @@ export function AccessLogFilters({
                 {uniquePages.map((page, index) => <option key={index} value={page}>{page}</option>)}
             </select>
             <input
-                type="date"
-                value={dayFilter}
-                onChange={(e) => setDayFilter(e.target.value)}
+                type="datetime-local"
+                value={startDateTime}
+                onChange={(e) => setStartDateTime(e.target.value)}
                 className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <select
-                value={hourFilter}
-                onChange={(e) => setHourFilter(e.target.value)}
-                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 custom-select"
-            >
-                <option value="">All Hours</option>
-                {Array.from({ length: 24 }, (_, i) => (
-                    <option key={i} value={i.toString().padStart(2, '0') + ':00'}>
-                        {i.toString().padStart(2, '0')}:00
-                    </option>
-                ))}
-            </select>
+            <input
+                type="datetime-local"
+                value={endDateTime}
+                onChange={(e) => setEndDateTime(e.target.value)}
+                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
             <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}

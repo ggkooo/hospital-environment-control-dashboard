@@ -78,15 +78,19 @@ export function AccessLogTable({
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <FiMapPin className="text-gray-500" />
+                                                    <span><strong>Location:</strong> {log.location}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <FiMapPin className="text-gray-500" />
                                                     <span><strong>City:</strong> {log.city}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <FiMapPin className="text-gray-500" />
-                                                    <span><strong>Coordinates:</strong> {log.latitude.toFixed(4)}, {log.longitude.toFixed(4)}</span>
+                                                    <span><strong>Coordinates:</strong> {log.latitude ? parseFloat(log.latitude).toFixed(4) : 'N/A'}, {log.longitude ? parseFloat(log.longitude).toFixed(4) : 'N/A'}</span>
                                                 </div>
                                                 <div className="col-span-2 flex items-center gap-2">
                                                     <FiMonitor className="text-gray-500" />
-                                                    <span><strong>User Agent:</strong> {log.userAgent}</span>
+                                                    <span><strong>User Agent:</strong> {log.user_agent}</span>
                                                 </div>
                                             </div>
                                         </td>
@@ -98,27 +102,33 @@ export function AccessLogTable({
                 </tbody>
             </table>
             {/* Pagination */}
-            <div className="flex justify-between items-center mt-4">
-                <span className="text-sm text-gray-700">
-                    Page {currentPage} of {totalPages}
-                </span>
-                <div className="flex gap-2">
+            {totalPages > 1 && (
+                <div className="flex justify-center mt-4 mb-4">
                     <button
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                         disabled={currentPage === 1}
-                        className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        className="px-3 py-1 mx-1 bg-gray-200 rounded disabled:opacity-50"
                     >
-                        <FiChevronLeft /> Previous
+                        <FiChevronLeft />
                     </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                        <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`px-3 py-1 mx-1 rounded ${page === currentPage ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                        >
+                            {page}
+                        </button>
+                    ))}
                     <button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                         disabled={currentPage === totalPages}
-                        className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        className="px-3 py-1 mx-1 bg-gray-200 rounded disabled:opacity-50"
                     >
-                        Next <FiChevronRight />
+                        <FiChevronRight />
                     </button>
                 </div>
-            </div>
+            )}
         </>
     )
 }
