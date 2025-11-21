@@ -10,9 +10,7 @@ export function useECO2Data() {
     const lastDataRef = useRef([])
 
     function validateConsecutiveECO2Data(data) {
-        // Sempre gerar 60 pontos baseados no tempo atual - 1 minuto
         const now = new Date();
-        // Subtrai 1 minuto do tempo atual para evitar inconsistência do ESP32
         now.setMinutes(now.getMinutes() - 1);
 
         const expectedTimestamps = Array.from({ length: 60 }, (_, i) => {
@@ -61,13 +59,10 @@ export function useECO2Data() {
                 throw new Error(`Failed to fetch eCO2 data, HTTP ${res.status}`)
             }
             const json = await res.json()
-            console.log('eCO2 API Response received:', json)
 
             const eco2Array = json?.data || []
-            console.log('eCO2 array length:', eco2Array.length)
 
             if (!Array.isArray(eco2Array) || eco2Array.length === 0) {
-                console.log('No real eCO2 data available')
                 const validatedData = validateConsecutiveECO2Data([]);
                 setEco2Data(validatedData)
                 lastDataRef.current = validatedData
@@ -82,11 +77,8 @@ export function useECO2Data() {
                 max: parseFloat(item.max_value) || 0
             })).filter(item => !isNaN(item.value))
 
-            console.log('Processed eCO2 data:', formattedData.slice(0, 3))
-
             const sortedData = formattedData.sort((a, b) => a.timestamp - b.timestamp)
             const validatedData = validateConsecutiveECO2Data(sortedData);
-            console.log('Validated eCO2 data length:', validatedData.length)
 
             setEco2Data(validatedData)
             lastDataRef.current = validatedData
@@ -105,7 +97,6 @@ export function useECO2Data() {
     }
 
     useEffect(() => {
-        console.log('Initializing eCO2 data hook')
         lastDataRef.current = []
 
         fetchECO2Data()
@@ -120,7 +111,6 @@ export function useECO2Data() {
     }, [])
 
     const refetch = () => {
-        console.log('Manual eCO2 refetch triggered')
         fetchECO2Data()
     }
 
