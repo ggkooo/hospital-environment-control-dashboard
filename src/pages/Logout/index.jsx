@@ -8,6 +8,7 @@ export function Logout() {
         // Clear token and user data
         localStorage.removeItem('token')
         localStorage.removeItem('user')
+        localStorage.removeItem('permissions')
         // Redirect to login
         navigate('/login')
     }, [navigate])

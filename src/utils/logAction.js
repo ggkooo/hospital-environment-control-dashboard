@@ -37,7 +37,7 @@ export async function logAction(action, page) {
         longitude: parseFloat(longitude)
     };
 
-    fetch('http://localhost:8000/api/access-logs', {
+    fetch('https://api.giordanoberwig.xyz/api/access-logs', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
