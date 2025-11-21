@@ -23,7 +23,6 @@ export function ReportsManager() {
     const loggedRef = useRef(false)
 
     const handleSuggestAlternatives = async () => {
-        console.log('Searching for alternative date periods with available data...')
         const suggestions = await suggestAlternativePeriods()
 
         if (suggestions.length > 0) {
@@ -34,14 +33,12 @@ export function ReportsManager() {
             if (confirm(message)) {
                 setStartDate(suggestions[0].startDate)
                 setEndDate(suggestions[0].endDate)
-                console.log(`Applied suggested period: ${suggestions[0].startDate} to ${suggestions[0].endDate}`)
             }
         } else {
             alert('No recent data periods found. The sensors may not be active or there may be API connectivity issues.')
         }
     }
 
-    // Função para formatar data corretamente sem problemas de timezone
     const formatDateBR = (dateString) => {
         const date = new Date(dateString + 'T00:00:00')
         return date.toLocaleDateString('pt-BR')
@@ -55,7 +52,6 @@ export function ReportsManager() {
         }))
     ]
 
-    // Calcular diferença de dias entre as datas
     const calculateDaysDifference = () => {
         if (!startDate || !endDate) return 0
         const start = new Date(startDate)
@@ -96,38 +92,31 @@ export function ReportsManager() {
             const days = await fetchAvailableDays()
             setAvailableDays(days)
 
-            // Auto-selecionar ontem como data de início e hoje como data de fim se não há datas selecionadas
             if (!startDate && !endDate) {
                 const today = new Date()
                 const yesterday = new Date()
                 yesterday.setDate(today.getDate() - 1)
 
                 setStartDate(yesterday.toISOString().split('T')[0])
-                setEndDate(yesterday.toISOString().split('T')[0]) // Mesmo dia para começar
-                console.log(`Auto-selected yesterday: ${yesterday.toISOString().split('T')[0]}`)
+                setEndDate(yesterday.toISOString().split('T')[0])
             }
         }
 
-        // Only fetch once on component mount
         initializeDates()
     }, [fetchAvailableDays])
 
-    // Ajustar granularidade automaticamente baseado nas datas selecionadas
     useEffect(() => {
         if (!startDate || !endDate) return
 
         const daysDiff = calculateDaysDifference()
         const sameDay = startDate === endDate
 
-        // Se for o mesmo dia, forçar hourly
         if (sameDay && selectedGranularity !== 'hourly') {
             setSelectedGranularity('hourly')
         }
-        // Se não tiver pelo menos 3 dias e estiver selecionado daily, mudar para hourly
         else if (daysDiff < 3 && selectedGranularity === 'daily') {
             setSelectedGranularity('hourly')
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [startDate, endDate])
 
     const handleGenerateReport = async () => {
@@ -141,7 +130,6 @@ export function ReportsManager() {
             return
         }
 
-        // Verificar se as datas estão muito no futuro
         const today = new Date()
         today.setHours(0, 0, 0, 0)
 
@@ -155,14 +143,12 @@ export function ReportsManager() {
             return
         }
 
-        // Verificar período muito longo
         const daysDifference = (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)
         if (daysDifference > 90) {
             const confirm = window.confirm('Você selecionou um período de mais de 90 dias. Isso pode gerar um relatório muito grande e demorar para processar. Deseja continuar?')
             if (!confirm) return
         }
 
-        // Validar granularidade baseada nas datas
         if (startDate === endDate && selectedGranularity !== 'hourly') {
             alert('Para o mesmo dia, apenas a granularidade "Per Hour" está disponível.')
             setSelectedGranularity('hourly')
@@ -176,25 +162,13 @@ export function ReportsManager() {
         }
 
         try {
-            console.log('Iniciando busca de dados para o relatório...', {
-                startDate,
-                endDate,
-                dataType: selectedDataType,
-                granularity: selectedGranularity,
-                periodDays: Math.round(daysDifference * 100) / 100
-            })
-
-            // Buscar dados do relatório com granularidade especificada
             const reportData = await fetchReportData(startDate, endDate, selectedDataType, selectedGranularity)
 
-            console.log('Gerando PDF com gráficos...')
-            // Gerar PDF (agora com gráficos e estatísticas avançadas)
             await generatePDFReport(reportData, startDate, endDate, selectedDataType, selectedGranularity, selectedArea, selectedLanguage)
 
         } catch (err) {
             console.error('Erro ao gerar relatório:', err)
 
-            // Fornecer feedback específico baseado no tipo de erro
             let userMessage = 'Erro ao gerar relatório. Tente novamente.'
             let showAlternatives = false
 
