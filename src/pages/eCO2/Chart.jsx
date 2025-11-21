@@ -7,9 +7,8 @@ export function ECO2Chart({ data }) {
     const [dimensions, setDimensions] = useState({ width: 800, height: 400 });
     const [visible, setVisible] = useState(false);
 
-    // Animation: fade-in when chart is mounted (faster)
     useEffect(() => {
-        const timer = setTimeout(() => setVisible(true), 300); // 300ms for faster fade-in
+        const timer = setTimeout(() => setVisible(true), 300);
         return () => clearTimeout(timer);
     }, []);
 
@@ -17,7 +16,6 @@ export function ECO2Chart({ data }) {
         const TARGET_POINTS = 60;
         if (!originalData || originalData.length === 0) {
             const now = new Date();
-            // Subtrai 1 minuto do tempo atual para evitar inconsistência do ESP32
             now.setMinutes(now.getMinutes() - 1);
             return Array.from({ length: TARGET_POINTS }, (_, i) => ({
                 timestamp: new Date(now.getTime() - ((TARGET_POINTS - 1 - i) * 60 * 1000)),
@@ -65,12 +63,10 @@ export function ECO2Chart({ data }) {
 
     useEffect(() => {
         if (!data) {
-            console.log('ECO2Chart: No data provided');
             return;
         }
 
         const paddedData = padDataTo60Points(data);
-        console.log('ECO2Chart: Rendering with padded data:', paddedData.length, 'points');
 
         const svg = d3.select(svgRef.current);
         svg.selectAll('*').remove();
@@ -92,11 +88,6 @@ export function ECO2Chart({ data }) {
             .nice()
             .range([innerHeight, 0]);
 
-        console.log('Scales created:', {
-            xDomain: xScale.domain(),
-            yDomain: yScale.domain(),
-            actualDataPoints: actualValues.length
-        });
         const g = svg.append('g')
             .attr('transform', `translate(${margin.left},${margin.top})`);
         const defs = svg.append('defs');
@@ -235,7 +226,6 @@ export function ECO2Chart({ data }) {
             .style('stroke', '#f1f5f9')
             .style('stroke-width', 0.5);
 
-        console.log('Chart rendered successfully');
 
     }, [data, dimensions]);
 
